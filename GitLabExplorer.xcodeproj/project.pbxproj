@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		CED6CF5F2E30544B00E6B240 /* GitLabNetwork in Frameworks */ = {isa = PBXBuildFile; productRef = CED6CF5E2E30544B00E6B240 /* GitLabNetwork */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		CED6CB612E30346800E6B240 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +31,7 @@
 		CED6CB4F2E30346600E6B240 /* GitLabExplorer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GitLabExplorer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CED6CB602E30346800E6B240 /* GitLabExplorerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GitLabExplorerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CED6CB6A2E30346800E6B240 /* GitLabExplorerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GitLabExplorerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CED6CF5D2E30543100E6B240 /* GitLabNetwork */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = GitLabNetwork; path = Packages/GitLabNetwork; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -52,6 +57,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CED6CF5F2E30544B00E6B240 /* GitLabNetwork in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,7 +84,9 @@
 				CED6CB512E30346600E6B240 /* GitLabExplorer */,
 				CED6CB632E30346800E6B240 /* GitLabExplorerTests */,
 				CED6CB6D2E30346800E6B240 /* GitLabExplorerUITests */,
+				CED6CF5A2E3053C700E6B240 /* Frameworks */,
 				CED6CB502E30346600E6B240 /* Products */,
+				CED6CF5D2E30543100E6B240 /* GitLabNetwork */,
 			);
 			sourceTree = "<group>";
 		};
@@ -90,6 +98,13 @@
 				CED6CB6A2E30346800E6B240 /* GitLabExplorerUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		CED6CF5A2E3053C700E6B240 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -112,6 +127,7 @@
 			);
 			name = GitLabExplorer;
 			packageProductDependencies = (
+				CED6CF5E2E30544B00E6B240 /* GitLabNetwork */,
 			);
 			productName = GitLabExplorer;
 			productReference = CED6CB4F2E30346600E6B240 /* GitLabExplorer.app */;
@@ -583,6 +599,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CED6CF5E2E30544B00E6B240 /* GitLabNetwork */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GitLabNetwork;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = CED6CB472E30346600E6B240 /* Project object */;
 }
