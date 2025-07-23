@@ -8,14 +8,31 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var showingAccountSheet = false
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        TabView {
+            ProjectsView(showingAccountSheet: $showingAccountSheet)
+                .tabItem {
+                    Image(systemName: "folder")
+                    Text("Projects")
+                }
+            
+            UsersView(showingAccountSheet: $showingAccountSheet)
+                .tabItem {
+                    Image(systemName: "person.2")
+                    Text("Users")
+                }
+            
+            ExploreView(showingAccountSheet: $showingAccountSheet)
+                .tabItem {
+                    Image(systemName: "magnifyingglass")
+                    Text("Explore")
+                }
         }
-        .padding()
+        .sheet(isPresented: $showingAccountSheet) {
+            AccountView()
+        }
     }
 }
 
