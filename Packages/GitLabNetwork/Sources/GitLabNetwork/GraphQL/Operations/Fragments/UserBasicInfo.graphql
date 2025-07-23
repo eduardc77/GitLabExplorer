@@ -1,0 +1,25 @@
+fragment UserBasicInfo on User {
+  id
+  username
+  name
+  avatarUrl
+  webUrl
+  state
+  bot
+}
+
+fragment UserDetails on User {
+  ...UserBasicInfo
+  bio
+  location
+  publicEmail
+  organization
+  jobTitle
+  pronouns
+  createdAt
+  status {
+    emoji
+    message
+    availability
+  }
+} 

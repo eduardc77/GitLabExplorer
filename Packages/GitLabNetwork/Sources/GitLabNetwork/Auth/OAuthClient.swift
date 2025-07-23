@@ -1,46 +1,63 @@
 import Foundation
 import CryptoKit
-import AuthenticationServices
 
 /// Handles OAuth authentication flow for GitLab
 public actor OAuthClient {
     private let configuration: GitLabConfiguration
-    private let session: URLSession
-    
-    // PKCE (Proof Key for Code Exchange) parameters
-    private var codeVerifier: String?
+    private let session = URLSession.shared
     private var state: String?
+    private var codeVerifier: String?
+
+    private let decoder: JSONDecoder = {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return decoder
+    }()
     
-    public init(
-        configuration: GitLabConfiguration,
-        session: URLSession = .shared
-    ) {
+    private let encoder: JSONEncoder = {
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        return encoder
+    }()
+    
+    public init(configuration: GitLabConfiguration) {
         self.configuration = configuration
-        self.session = session
     }
     
-    // MARK: - Public Methods
+    // MARK: - Authorization URL Generation
     
-    /// Start OAuth flow and return authorization URL
-    public func createAuthorizationRequest() -> URL? {
+    public func generateAuthorizationURL() throws -> URL {
         // Generate PKCE parameters
         let verifier = generateCodeVerifier()
         let challenge = generateCodeChallenge(from: verifier)
-        let stateValue = generateState()
+        let state = generateState()
         
-        // Store for later use
+        // Store for later verification
         self.codeVerifier = verifier
-        self.state = stateValue
+        self.state = state
         
-        // Use the configuration's helper method
-        return configuration.oauth.authorizationURL(
-            baseURL: configuration.baseURL,
-            state: stateValue,
-            codeChallenge: challenge
-        )
+        // Build authorization URL
+        var components = URLComponents(url: configuration.baseURL, resolvingAgainstBaseURL: true)
+        components?.path = configuration.oauth.endpoints.authorize
+        components?.queryItems = [
+            URLQueryItem(name: "client_id", value: configuration.oauth.clientID),
+            URLQueryItem(name: "redirect_uri", value: configuration.oauth.redirectURI),
+            URLQueryItem(name: "response_type", value: "code"),
+            URLQueryItem(name: "scope", value: configuration.oauth.scopes.joined(separator: " ")),
+            URLQueryItem(name: "state", value: state),
+            URLQueryItem(name: "code_challenge", value: challenge),
+            URLQueryItem(name: "code_challenge_method", value: "S256")
+        ]
+        
+        guard let url = components?.url else {
+            throw GitLabError.invalidURL("Failed to create authorization URL")
+        }
+        
+        return url
     }
     
-    /// Exchange authorization code for access token
+    // MARK: - Token Exchange
+    
     public func exchangeCodeForToken(code: String, state: String) async throws -> OAuthToken {
         // Verify state matches
         guard state == self.state else {
@@ -56,27 +73,27 @@ public actor OAuthClient {
         components?.path = configuration.oauth.endpoints.token
         
         guard let url = components?.url else {
-            throw GitLabError.invalidURL
+            throw GitLabError.invalidURL("Failed to create token URL")
         }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        let body = TokenExchangeRequest(
-            clientID: configuration.oauth.clientID,
+        let tokenRequest = TokenRequest(
+            clientId: configuration.oauth.clientID,
             code: code,
-            redirectURI: configuration.oauth.redirectURI,
+            redirectUri: configuration.oauth.redirectURI,
             codeVerifier: verifier
         )
         
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try encoder.encode(tokenRequest)
         
-        // Perform request
+        // Execute request
         let (data, response) = try await session.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw GitLabError.invalidResponse
+            throw GitLabError.invalidResponse("Invalid response type")
         }
         
         guard httpResponse.statusCode == 200 else {
@@ -84,41 +101,36 @@ public actor OAuthClient {
             throw GitLabError.httpError(statusCode: httpResponse.statusCode, message: message)
         }
         
-        // Decode token
-        let token = try JSONDecoder().decode(OAuthToken.self, from: data)
-        
-        // Clear PKCE parameters
-        self.codeVerifier = nil
-        self.state = nil
-        
-        return token
+        return try decoder.decode(OAuthToken.self, from: data)
     }
     
-    /// Refresh an expired token
-    public func refreshToken(_ token: OAuthToken) async throws -> OAuthToken {
+    // MARK: - Token Refresh
+    
+    public func refreshToken(_ refreshToken: String) async throws -> OAuthToken {
+        // Build refresh request
         var components = URLComponents(url: configuration.baseURL, resolvingAgainstBaseURL: true)
         components?.path = configuration.oauth.endpoints.token
         
         guard let url = components?.url else {
-            throw GitLabError.invalidURL
+            throw GitLabError.invalidURL("Failed to create refresh token URL")
         }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        let body = TokenRefreshRequest(
-            clientID: configuration.oauth.clientID,
-            refreshToken: token.refreshToken,
-            redirectURI: configuration.oauth.redirectURI
+        let refreshRequest = RefreshTokenRequest(
+            clientId: configuration.oauth.clientID,
+            refreshToken: refreshToken
         )
         
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try encoder.encode(refreshRequest)
         
+        // Execute request
         let (data, response) = try await session.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw GitLabError.invalidResponse
+            throw GitLabError.invalidResponse("Invalid response type for refresh token")
         }
         
         guard httpResponse.statusCode == 200 else {
@@ -126,25 +138,29 @@ public actor OAuthClient {
             throw GitLabError.refreshTokenFailed(message ?? "Unknown error")
         }
         
-        return try JSONDecoder().decode(OAuthToken.self, from: data)
+        return try decoder.decode(OAuthToken.self, from: data)
+    }
+}
+
+// MARK: - Private Helpers
+
+private extension OAuthClient {
+    func generateCodeVerifier() -> String {
+        var bytes = [UInt8](repeating: 0, count: 32)
+        _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
+        return Data(bytes).base64URLEncodedString()
     }
     
-    // MARK: - PKCE Helpers
-    
-    private func generateCodeVerifier() -> String {
-        let data = Data((0..<32).map { _ in UInt8.random(in: 0...255) })
-        return data.base64URLEncodedString()
-    }
-    
-    private func generateCodeChallenge(from verifier: String) -> String {
+    func generateCodeChallenge(from verifier: String) -> String {
         let data = Data(verifier.utf8)
-        let hashed = SHA256.hash(data: data)
-        return Data(hashed).base64URLEncodedString()
+        let hash = SHA256.hash(data: data)
+        return Data(hash).base64URLEncodedString()
     }
     
-    private func generateState() -> String {
-        let data = Data((0..<16).map { _ in UInt8.random(in: 0...255) })
-        return data.base64URLEncodedString()
+    func generateState() -> String {
+        var bytes = [UInt8](repeating: 0, count: 16)
+        _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
+        return Data(bytes).base64URLEncodedString()
     }
 }
 
@@ -157,4 +173,20 @@ private extension Data {
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: "=", with: "")
     }
+}
+
+// MARK: - Request Models
+
+private struct TokenRequest: Encodable {
+    let grantType = "authorization_code"
+    let clientId: String
+    let code: String
+    let redirectUri: String
+    let codeVerifier: String
+}
+
+private struct RefreshTokenRequest: Encodable {
+    let grantType = "refresh_token"
+    let clientId: String
+    let refreshToken: String
 } 

@@ -1,7 +1,7 @@
 import Foundation
 
 /// Configuration for GitLab API client
-public struct GitLabConfiguration {
+public struct GitLabConfiguration: Sendable {
     /// GitLab instance URL
     public let baseURL: URL
     
@@ -34,13 +34,13 @@ public struct GitLabConfiguration {
 }
 
 /// OAuth specific configuration
-public struct OAuthConfiguration {
+public struct OAuthConfiguration: Sendable {
     public let clientID: String
     public let redirectURI: String
     public let scopes: [String]
     
     /// OAuth endpoints
-    public struct Endpoints {
+    public struct Endpoints: Sendable {
         public let authorize = "/oauth/authorize"
         public let token = "/oauth/token"
         public let revoke = "/oauth/revoke"

@@ -1,45 +1,37 @@
 import Foundation
-import Observation
+import Apollo
 
-/// Manages authentication state and coordinates OAuth flow
+@MainActor
 @Observable
-public final class AuthenticationManager: Sendable {
+public final class AuthenticationManager {
     private let configuration: GitLabConfiguration
     private let tokenManager: TokenManager
-    
-    // Observable authentication state
+    private let graphQLClient: GraphQLClient
+
     public private(set) var isAuthenticated = false
-    public private(set) var currentUser: String?
+    public private(set) var currentUser: GitLabUser?
+    public private(set) var isLoadingUser = false
     
-    // Nonisolated properties for Sendable conformance
-    nonisolated private let _tokenManager: TokenManager
-    nonisolated private let _configuration: GitLabConfiguration
-    
-    public init(configuration: GitLabConfiguration) {
+    /// Initialize with shared GraphQL client (recommended pattern)
+    public init(configuration: GitLabConfiguration, graphQLClient: GraphQLClient) {
         self.configuration = configuration
-        self._configuration = configuration
         self.tokenManager = TokenManager(configuration: configuration)
-        self._tokenManager = tokenManager
+        self.graphQLClient = graphQLClient
         
         // Check initial auth state
         Task {
             await checkAuthenticationStatus()
         }
     }
-    
-    // MARK: - Authentication
+
+    // MARK: - Authentication Flow
     
     /// Start OAuth authentication flow
-    @MainActor
     public func authenticate() async throws {
-        // 1. Get authorization URL
-        guard let authURL = await _tokenManager.getOAuthClient().createAuthorizationRequest() else {
-            throw GitLabError.invalidConfiguration("Failed to create authorization URL")
-        }
-        
-        // 2. Open in browser (the app will handle this)
-        // Return the URL so the app can open it
-        await openAuthorizationURL(authURL)
+        // Generate authorization URL
+        let authURL = try await tokenManager.getOAuthClient().generateAuthorizationURL()
+
+        print("Open this URL to authenticate: \(authURL)")
     }
     
     /// Complete authentication with callback URL
@@ -52,61 +44,91 @@ public final class AuthenticationManager: Sendable {
         }
         
         // Exchange code for token
-        let token = try await _tokenManager.getOAuthClient().exchangeCodeForToken(
+        let token = try await tokenManager.getOAuthClient().exchangeCodeForToken(
             code: code,
             state: state
         )
-        
-        // Save token
-        try await _tokenManager.saveToken(token)
-        
-        // Update auth state
+
+        try await tokenManager.saveToken(token)
         await checkAuthenticationStatus()
     }
     
     /// Sign out and clear tokens
     public func signOut() async throws {
-        try await _tokenManager.clearToken()
+        try await tokenManager.clearToken()
         
-        await MainActor.run {
-            isAuthenticated = false
-            currentUser = nil
+        // Clear auth state AND current user together
+        isAuthenticated = false
+        currentUser = nil
+    }
+    
+    // MARK: - Current User Management
+    
+    /// Load the current authenticated user (part of auth flow)
+    nonisolated public func loadCurrentUser() async throws {
+        guard await isAuthenticated else {
+            throw GitLabError.authenticationRequired
+        }
+
+        await MainActor.run { isLoadingUser = true }
+        defer { Task { @MainActor in isLoadingUser = false } }
+        
+        do {
+            let user = try await graphQLClient.getCurrentUser()
+            await MainActor.run { currentUser = user }
+        } catch {
+            print("Error loading current user: \(error)")
+            await MainActor.run { currentUser = nil }
+            throw error
         }
     }
     
-    /// Check if user is authenticated
+    /// Check if user is authenticated and load current user if needed
     private func checkAuthenticationStatus() async {
-        let authenticated = await _tokenManager.isAuthenticated()
+        let authenticated = await tokenManager.isAuthenticated()
         
-        await MainActor.run {
-            self.isAuthenticated = authenticated
-            // TODO: Fetch current user info when GraphQL is set up
+        isAuthenticated = authenticated
+        
+        if authenticated && currentUser == nil {
+            // Try to load current user automatically
+            try? await loadCurrentUser()
         }
     }
-    
-    /// Open authorization URL (to be implemented by the app)
-    @MainActor
-    private func openAuthorizationURL(_ url: URL) async {
-        // This will be handled by the app using ASWebAuthenticationSession
-        // For now, just print it
-        print("Open this URL for authentication: \(url)")
-    }
-    
-    // MARK: - API Access (placeholder for now)
     
     /// Get a valid access token for API calls
     public func getAccessToken() async throws -> String {
-        let token = try await _tokenManager.getValidToken()
+        let token = try await tokenManager.getValidToken()
         return token.accessToken
     }
     
-    // TODO: Add GraphQL client methods here
-    // public func searchUsers(query: String) async throws -> [User]
-    // public func getCurrentUser() async throws -> User
-    // etc.
+    /// Get current user information
+    public func getCurrentUser() async throws -> GitLabUser? {
+        guard isAuthenticated else {
+            throw GitLabError.authenticationRequired
+        }
+        
+        do {
+            return try await graphQLClient.getCurrentUser()
+        } catch {
+            // If we get an auth error, the token might be invalid
+            if case GitLabError.authenticationRequired = error {
+                try? await tokenManager.clearToken()
+                await updateAuthenticationState(isAuthenticated: false, currentUser: nil)
+            }
+            throw error
+        }
+    }
+    
+    /// Update authentication state on main actor
+    private func updateAuthenticationState(isAuthenticated: Bool, currentUser: GitLabUser?) async {
+        await MainActor.run {
+            self.isAuthenticated = isAuthenticated
+            self.currentUser = currentUser
+        }
+    }
 }
 
-// MARK: - Authentication Completion Handler
+// MARK: - Authentication Helpers
 
 public extension AuthenticationManager {
     /// Helper to validate callback URL
@@ -123,4 +145,4 @@ public extension AuthenticationManager {
         let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         return components?.queryItems?.contains(where: { $0.name == "code" }) ?? false
     }
-} 
+}

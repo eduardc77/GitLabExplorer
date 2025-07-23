@@ -117,6 +117,7 @@
 				CED6CB4B2E30346600E6B240 /* Sources */,
 				CED6CB4C2E30346600E6B240 /* Frameworks */,
 				CED6CB4D2E30346600E6B240 /* Resources */,
+				CE256D1B2E311B620044A5BF /* Apollo Code Generation */,
 			);
 			buildRules = (
 			);
@@ -247,6 +248,31 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		CE256D1B2E311B620044A5BF /* Apollo Code Generation */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${SRCROOT}/Packages/GitLabNetwork/apollo-codegen-config.json",
+				"${SRCROOT}/Packages/GitLabNetwork/Sources/GitLabNetwork/GraphQL/Operations",
+				"${SRCROOT}/Packages/GitLabNetwork/Sources/GitLabNetwork/GraphQL/schema.json",
+			);
+			name = "Apollo Code Generation";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/Packages/GitLabNetwork/Sources/GitLabNetwork/GraphQL/Generated",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e\n\necho \"🚀 Apollo iOS Code Generation\"\necho \"📍 SRCROOT: ${SRCROOT}\"\necho \"📍 PROJECT_DIR: ${PROJECT_DIR}\"\necho \"📍 PWD: $(pwd)\"\n\n# Try multiple possible paths for GitLabNetwork\nPOSSIBLE_PATHS=(\n    \"${SRCROOT}/Packages/GitLabNetwork\"\n    \"${PROJECT_DIR}/Packages/GitLabNetwork\"\n    \"${SRCROOT}/../Packages/GitLabNetwork\"\n    \"$(pwd)/Packages/GitLabNetwork\"\n    \"./Packages/GitLabNetwork\"\n)\n\nGITLAB_NETWORK_DIR=\"\"\n\nfor path in \"${POSSIBLE_PATHS[@]}\"; do\n    echo \"🔍 Checking path: $path\"\n    if [ -d \"$path\" ]; then\n        GITLAB_NETWORK_DIR=\"$path\"\n        echo \"✅ Found GitLabNetwork at: $GITLAB_NETWORK_DIR\"\n        break\n    fi\ndone\n\nif [ -z \"$GITLAB_NETWORK_DIR\" ]; then\n    echo \"❌ Error: GitLabNetwork package not found in any of these locations:\"\n    for path in \"${POSSIBLE_PATHS[@]}\"; do\n        echo \"   - $path\"\n    done\n    \n    echo \"\"\n    echo \"📂 Current working directory contents:\"\n    ls -la\n    \n    echo \"\"\n    echo \"📂 SRCROOT contents:\"\n    ls -la \"${SRCROOT}\" || echo \"SRCROOT not accessible\"\n    \n    exit 1\nfi\n\ncd \"$GITLAB_NETWORK_DIR\"\necho \"📂 Changed to directory: $(pwd)\"\n\n# List contents to verify we're in the right place\necho \"📂 Contents of GitLabNetwork directory:\"\nls -la\n\n# Check if apollo-ios-cli exists\nif [ ! -f \"./apollo-ios-cli\" ]; then\n    echo \"❌ Error: apollo-ios-cli not found.\"\n    echo \"🔧 Attempting to extract CLI from Apollo package...\"\n    \n    # Try to extract CLI from Apollo package\n    if [ -f \".build/checkouts/apollo-ios/CLI/apollo-ios-cli.tar.gz\" ]; then\n        echo \"📦 Extracting Apollo CLI...\"\n        cd .build/checkouts/apollo-ios/CLI\n        tar -xf apollo-ios-cli.tar.gz\n        cp apollo-ios-cli \"../../../../\"\n        cd ../../../../\n        echo \"✅ Apollo CLI extracted successfully\"\n    else\n        echo \"❌ Error: Apollo CLI not found. Please run 'swift build' first to download dependencies.\"\n        exit 1\n    fi\nfi\n\n# Check if configuration file exists\nif [ ! -f \"./apollo-codegen-config.json\" ]; then\n    echo \"❌ Error: apollo-codegen-config.json not found\"\n    echo \"📂 Current directory contents:\"\n    ls -la\n    exit 1\nfi\n\necho \"✅ Found apollo-codegen-config.json\"\n\n# Only run in Debug configuration to avoid slowing down Release builds\nif [ \"${CONFIGURATION}\" = \"Debug\" ]; then\n    echo \"🔄 Running Apollo Code Generation...\"\n    ./apollo-ios-cli generate\n    echo \"✅ Apollo Code Generation completed successfully!\"\nelse\n    echo \"⏭️  Skipping Apollo Code Generation in ${CONFIGURATION} configuration\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		CED6CB4B2E30346600E6B240 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -337,6 +363,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -392,6 +419,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -409,6 +437,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"GitLabExplorer/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -420,7 +449,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.1;
@@ -446,6 +475,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"GitLabExplorer/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -457,7 +487,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.1;
@@ -480,7 +510,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.1;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.team.GitLabExplorer.GitLabExplorerTests;
@@ -502,7 +532,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.1;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.team.GitLabExplorer.GitLabExplorerTests;
@@ -523,7 +553,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.1;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.team.GitLabExplorer.GitLabExplorerUITests;
@@ -544,7 +574,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.1;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.team.GitLabExplorer.GitLabExplorerUITests;

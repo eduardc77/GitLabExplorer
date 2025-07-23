@@ -1,0 +1,42 @@
+{
+  "schemaNamespace": "GitLabAPI",
+  "input": {
+    "operationSearchPaths": [
+      "**/*.graphql"
+    ],
+    "schemaSearchPaths": [
+      "./Sources/GitLabNetwork/GraphQL/schema.json"
+    ]
+  },
+  "output": {
+    "testMocks": {
+      "none": {}
+    },
+    "schemaTypes": {
+      "path": "./Sources/GitLabNetwork/GraphQL/Generated",
+      "moduleType": {
+        "embeddedInTarget": {
+          "name": "GitLabNetwork"
+        }
+      }
+    },
+    "operations": {
+      "inSchemaModule": {}
+    }
+  },
+  "schemaDownloadConfiguration": {
+    "downloadMethod": {
+      "introspection": {
+        "endpointURL": "https://gitlab.com/api/graphql",
+        "httpMethod": {
+          "POST": {}
+        },
+        "includeDeprecatedInputValues": false,
+        "outputFormat": "JSON"
+      }
+    },
+    "downloadTimeout": 60,
+    "headers": {},
+    "outputPath": "./Sources/GitLabNetwork/GraphQL/schema.json"
+  }
+} 

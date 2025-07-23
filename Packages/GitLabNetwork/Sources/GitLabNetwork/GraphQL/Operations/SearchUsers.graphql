@@ -1,0 +1,16 @@
+query SearchUsers($query: String!, $first: Int = 20, $after: String) {
+  users(search: $query, first: $first, after: $after) {
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+    edges {
+      cursor
+      node {
+        ...UserDetails
+      }
+    }
+  }
+} 
