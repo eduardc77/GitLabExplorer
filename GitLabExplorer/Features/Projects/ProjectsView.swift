@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ProjectsView: View {
     @Binding var showingAccountSheet: Bool
-
+    
     var body: some View {
         NavigationStack {
             List {
@@ -21,11 +21,8 @@ struct ProjectsView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
+                    AccountButton {
                         showingAccountSheet = true
-                    } label: {
-                        Image(systemName: "person.crop.circle")
-                            .font(.title2)
                     }
                 }
             }
@@ -38,4 +35,5 @@ struct ProjectsView: View {
 
 #Preview {
     ProjectsView(showingAccountSheet: .constant(false))
+        .environment(AuthenticationStore())
 }

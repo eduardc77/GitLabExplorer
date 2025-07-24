@@ -1,8 +1,7 @@
 import Foundation
 
 /// Service for user operations (OTHER users, not current user)
-/// Current user is managed by AuthenticationManager
-/// This is a pure business logic service - UI state belongs in ViewModels
+/// Current user is managed by AuthenticationService
 public final class UserService: Sendable {
     
     // MARK: - Properties
@@ -14,13 +13,6 @@ public final class UserService: Sendable {
     /// Initialize with existing GraphQL client
     public init(graphQLClient: GraphQLClient) {
         self.graphQLClient = graphQLClient
-    }
-    
-    /// Convenience initializer - creates its own GraphQL client
-    public convenience init(configuration: GitLabConfiguration, tokenManager: TokenManager) {
-        let authProvider = GitLabAuthProvider(tokenManager: tokenManager)
-        let apolloClient = GraphQLClient(configuration: configuration, authProvider: authProvider)
-        self.init(graphQLClient: apolloClient)
     }
     
     // MARK: - User Search Operations
@@ -57,4 +49,5 @@ public final class UserService: Sendable {
     }
 }
 
+ 
  

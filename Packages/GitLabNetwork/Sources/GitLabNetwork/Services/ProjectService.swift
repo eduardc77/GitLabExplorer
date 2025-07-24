@@ -1,35 +1,29 @@
+import Foundation
+
 /// Service for project-related GitLab operations
-/// This is a pure business logic service - UI state belongs in ViewModels
+/// This is a pure business logic service - UI state belongs in app-layer stores
 public final class ProjectService: Sendable {
     
     // MARK: - Properties
     
     private let graphQLClient: GraphQLClient
-    private let authManager: AuthenticationManager?
+    private let authService: AuthenticationService?
     
     // MARK: - Initialization
     
     /// Initialize with existing dependencies
-    public init(graphQLClient: GraphQLClient, authManager: AuthenticationManager? = nil) {
+    public init(graphQLClient: GraphQLClient, authService: AuthenticationService? = nil) {
         self.graphQLClient = graphQLClient
-        self.authManager = authManager
-    }
-    
-    /// Convenience initializer - creates its own dependencies
-    public convenience init(configuration: GitLabConfiguration, authManager: AuthenticationManager? = nil) {
-        let tokenManager = TokenManager(configuration: configuration)
-        let authProvider = GitLabAuthProvider(tokenManager: tokenManager)
-        let apolloClient = GraphQLClient(configuration: configuration, authProvider: authProvider)
-        self.init(graphQLClient: apolloClient, authManager: authManager)
+        self.authService = authService
     }
     
     // MARK: - Project Operations
     
     /// Get user's projects
     public func getUserProjects(userId: String) async throws -> [GitLabProject] {
-        // Check authentication if auth manager is available
-        if let authManager = authManager {
-            guard await authManager.isAuthenticated else {
+        // Check authentication if auth service is available
+        if let authService = authService {
+            guard await authService.isAuthenticated else {
                 throw GitLabError.authenticationRequired
             }
         }
@@ -40,9 +34,9 @@ public final class ProjectService: Sendable {
     
     /// Search projects
     public func searchProjects(query: String, limit: Int = 20) async throws -> [GitLabProject] {
-        // Check authentication if auth manager is available
-        if let authManager = authManager {
-            guard await authManager.isAuthenticated else {
+        // Check authentication if auth service is available
+        if let authService = authService {
+            guard await authService.isAuthenticated else {
                 throw GitLabError.authenticationRequired
             }
         }
@@ -53,9 +47,9 @@ public final class ProjectService: Sendable {
     
     /// Get project by ID
     public func getProject(id: String) async throws -> GitLabProject? {
-        // Check authentication if auth manager is available
-        if let authManager = authManager {
-            guard await authManager.isAuthenticated else {
+        // Check authentication if auth service is available
+        if let authService = authService {
+            guard await authService.isAuthenticated else {
                 throw GitLabError.authenticationRequired
             }
         }
@@ -64,3 +58,4 @@ public final class ProjectService: Sendable {
         throw GitLabError.invalidConfiguration("GetProject query not implemented yet")
     }
 } 
+ 

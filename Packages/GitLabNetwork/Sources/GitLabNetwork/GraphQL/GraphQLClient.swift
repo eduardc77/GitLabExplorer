@@ -2,99 +2,87 @@ import Foundation
 @preconcurrency import Apollo
 @preconcurrency import ApolloAPI
 
-/// GraphQL client for GitLab API with Swift 6 concurrency
-/// Contains business logic to convert Apollo types to domain models inside the actor
+/// Request context for passing authentication token
+private final class AuthContext: RequestContext {
+    let token: String?
+    
+    init(token: String?) {
+        self.token = token
+    }
+}
+
 public actor GraphQLClient {
     private let apolloClient: ApolloClient
     private let configuration: GitLabConfiguration
+    private let authProvider: GitLabAuthProvider
     
     public init(configuration: GitLabConfiguration, authProvider: GitLabAuthProvider) {
         self.configuration = configuration
+        self.authProvider = authProvider
         
-        // Initialize Apollo client with proper configuration
+        // Setup Apollo client with custom interceptor provider
+        let url = configuration.baseURL.appendingPathComponent("/api/graphql")
         let store = ApolloStore()
         let client = URLSessionClient()
-        let provider = DefaultInterceptorProvider(client: client, store: store)
         
-        let url = configuration.baseURL.appendingPathComponent("/api/graphql")
+        // Create interceptor provider
+        let provider = AuthInterceptorProvider(client: client, store: store)
+        
         let transport = RequestChainNetworkTransport(
             interceptorProvider: provider,
             endpointURL: url
         )
         
-        self.apolloClient = ApolloClient(networkTransport: transport, store: store)
+        self.apolloClient = ApolloClient(
+            networkTransport: transport,
+            store: store
+        )
     }
     
-    // MARK: - Raw GraphQL Operations (for internal use)
+    // MARK: - Public API
     
-    /// Execute a GraphQL query and return raw Apollo data (internal use only)
-    private func queryRaw<Query: GraphQLQuery>(
-        _ query: Query,
-        cachePolicy: CachePolicy = .returnCacheDataElseFetch
-    ) async throws -> Query.Data {
-        // Capture safely to avoid actor isolation issues
-        nonisolated(unsafe) let safeQuery = query
-        nonisolated(unsafe) let safeCachePolicy = cachePolicy
-        let result = try await apolloClient.fetchAsync(query: safeQuery, cachePolicy: safeCachePolicy)
-        
-        // Handle GraphQL errors
-        if let errors = result.errors, !errors.isEmpty {
-            let errorDetails = errors.map { error in
-                GitLabError.GraphQLErrorDetail(
-                    message: error.message ?? "Unknown GraphQL error",
-                    path: error.path?.compactMap { "\($0)" } ?? [],
-                    apolloExtensions: error.extensions
-                )
-            }
-            throw GitLabError.graphQLErrors(errorDetails)
-        }
-        
-        guard let data = result.data else {
-            throw GitLabError.invalidResponse("No data in GraphQL response")
-        }
-        
-        return data
-    }
-    
-    /// Execute a GraphQL mutation and return raw Apollo data (internal use only)
-    private func mutateRaw<Mutation: GraphQLMutation>(
-        _ mutation: Mutation
-    ) async throws -> Mutation.Data {
-        // Capture safely to avoid actor isolation issues
-        nonisolated(unsafe) let safeMutation = mutation
-        let result = try await apolloClient.performAsync(mutation: safeMutation)
-        
-        // Handle GraphQL errors
-        if let errors = result.errors, !errors.isEmpty {
-            let errorDetails = errors.map { error in
-                GitLabError.GraphQLErrorDetail(
-                    message: error.message ?? "Unknown GraphQL error",
-                    path: error.path?.compactMap { "\($0)" } ?? [],
-                    apolloExtensions: error.extensions
-                )
-            }
-            throw GitLabError.graphQLErrors(errorDetails)
-        }
-        
-        guard let data = result.data else {
-            throw GitLabError.invalidResponse("No data in GraphQL response")
-        }
-        
-        return data
-    }
-    
-    // MARK: - Domain-Specific Operations
-    
-    /// Get current user information
+    /// Get current authenticated user
     public func getCurrentUser() async throws -> GitLabUser? {
         let query = GitLabAPI.CurrentUserQuery()
-        let data = try await queryRaw(query)
         
-        guard let apolloUser = data.currentUser else {
+        // Get auth token
+        let token = try await authProvider.getAuthToken()
+        let context = AuthContext(token: token)
+        
+        // Execute query with proper isolation
+        let result: GraphQLResult<GitLabAPI.CurrentUserQuery.Data> = try await withCheckedThrowingContinuation { continuation in
+            apolloClient.fetch(
+                query: query,
+                cachePolicy: .returnCacheDataElseFetch,
+                contextIdentifier: nil,
+                context: context,
+                queue: .main
+            ) { fetchResult in
+                switch fetchResult {
+                case .success(let graphQLResult):
+                    continuation.resume(returning: graphQLResult)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+        
+        // Handle GraphQL errors
+        if let errors = result.errors, !errors.isEmpty {
+            throw GitLabError.graphQLErrors(errors.map { error in
+                GitLabError.GraphQLErrorDetail(
+                    message: error.message ?? "Unknown error",
+                    path: error.path?.compactMap { "\($0)" } ?? [],
+                    apolloExtensions: error.extensions
+                )
+            })
+        }
+        
+        // Convert to domain model
+        guard let apolloUser = result.data?.currentUser else {
             return nil
         }
         
-        // Convert Apollo type to domain model inside the actor
         return GitLabUser(
             id: String(apolloUser.id),
             username: apolloUser.username,
@@ -104,7 +92,9 @@ public actor GraphQLClient {
             bio: apolloUser.bio,
             location: apolloUser.location,
             webUrl: URL(string: apolloUser.webUrl),
-            createdAt: apolloUser.createdAt.flatMap { ISO8601DateFormatter().date(from: $0) }
+            createdAt: apolloUser.createdAt.flatMap { ISO8601DateFormatter().date(from: $0) },
+            lastActivityOn: apolloUser.lastActivityOn.flatMap { ISO8601DateFormatter().date(from: $0) },
+            state: UserState(rawValue: apolloUser.state.rawValue) ?? .active
         )
     }
     
@@ -115,21 +105,98 @@ public actor GraphQLClient {
             first: .some(limit),
             after: after.map { GraphQLNullable.some($0) } ?? .none
         )
-        let data = try await queryRaw(searchQuery)
         
-        // Convert Apollo types to domain models inside the actor
-        let users = data.users?.edges?.compactMap { edge -> GitLabUser? in
+        // Get auth token
+        let token = try await authProvider.getAuthToken()
+        let context = AuthContext(token: token)
+        
+        // Execute query with proper isolation
+        let result: GraphQLResult<GitLabAPI.SearchUsersQuery.Data> = try await withCheckedThrowingContinuation { continuation in
+            apolloClient.fetch(
+                query: searchQuery,
+                cachePolicy: .returnCacheDataElseFetch,
+                contextIdentifier: nil,
+                context: context,
+                queue: .main
+            ) { fetchResult in
+                switch fetchResult {
+                case .success(let graphQLResult):
+                    continuation.resume(returning: graphQLResult)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+        
+        // Handle GraphQL errors
+        if let errors = result.errors, !errors.isEmpty {
+            throw GitLabError.graphQLErrors(errors.map { error in
+                GitLabError.GraphQLErrorDetail(
+                    message: error.message ?? "Unknown error",
+                    path: error.path?.compactMap { "\($0)" } ?? [],
+                    apolloExtensions: error.extensions
+                )
+            })
+        }
+        
+        // Convert to domain models
+        return result.data?.users?.edges?.compactMap { edge -> GitLabUser? in
             guard let node = edge?.node else { return nil }
             return GitLabUser.from(node.fragments.userDetails)
         } ?? []
-        
-        return users
     }
     
-    // MARK: - Cache Management
-    
-    /// Clear Apollo cache
+    /// Clear the Apollo cache
     public func clearCache() async throws {
-        try await apolloClient.clearCacheAsync()
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            apolloClient.clearCache { result in
+                switch result {
+                case .success:
+                    continuation.resume()
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
     }
-} 
+}
+
+// MARK: - Auth Interceptor Provider
+
+/// Custom interceptor provider that adds authentication
+private final class AuthInterceptorProvider: DefaultInterceptorProvider {
+    override func interceptors<Operation: GraphQLOperation>(for operation: Operation) -> [any ApolloInterceptor] {
+        var interceptors = super.interceptors(for: operation)
+        // Insert auth interceptor at the beginning
+        interceptors.insert(AuthTokenInterceptor(), at: 0)
+        return interceptors
+    }
+}
+
+// MARK: - Auth Token Interceptor
+
+/// Interceptor that adds authentication token from request context
+private final class AuthTokenInterceptor: ApolloInterceptor {
+    let id = UUID().uuidString
+    
+    func interceptAsync<Operation: GraphQLOperation>(
+        chain: any RequestChain,
+        request: HTTPRequest<Operation>,
+        response: HTTPResponse<Operation>?,
+        completion: @escaping (Result<GraphQLResult<Operation.Data>, any Error>) -> Void
+    ) {
+        // Get auth context from request
+        if let authContext = request.context as? AuthContext,
+           let token = authContext.token {
+            request.addHeader(name: "Authorization", value: "Bearer \(token)")
+        }
+        
+        // Continue with the chain
+        chain.proceedAsync(
+            request: request,
+            response: response,
+            interceptor: self,
+            completion: completion
+        )
+    }
+}

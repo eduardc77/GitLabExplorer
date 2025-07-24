@@ -15,8 +15,10 @@ struct ExploreView: View {
             ScrollView {
                 LazyVStack(spacing: 16) {
                     TrendingSection()
+                    
                     Divider()
                         .padding(.horizontal)
+                    
                     RecentActivitySection()
                 }
                 .padding(.top)
@@ -25,11 +27,8 @@ struct ExploreView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
+                    AccountButton {
                         showingAccountSheet = true
-                    } label: {
-                        Image(systemName: "person.crop.circle")
-                            .font(.title2)
                     }
                 }
             }
@@ -39,4 +38,5 @@ struct ExploreView: View {
 
 #Preview {
     ExploreView(showingAccountSheet: .constant(false))
+        .environment(AuthenticationStore())
 }

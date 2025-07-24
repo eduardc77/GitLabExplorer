@@ -22,11 +22,8 @@ struct UsersView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
+                    AccountButton {
                         showingAccountSheet = true
-                    } label: {
-                        Image(systemName: "person.crop.circle")
-                            .font(.title2)
                     }
                 }
             }
@@ -40,4 +37,5 @@ struct UsersView: View {
 
 #Preview {
     UsersView(showingAccountSheet: .constant(false))
+        .environment(AuthenticationStore())
 }

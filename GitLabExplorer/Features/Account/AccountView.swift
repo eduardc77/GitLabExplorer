@@ -9,16 +9,17 @@ import SwiftUI
 
 struct AccountView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(AuthenticationStore.self) private var authStore
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
-                AccountHeaderView()
-                SignInButtonsView()
-                Spacer()
-                AccountFooterView()
+            Group {
+                if authStore.isAuthenticated {
+                    AuthenticatedAccountView()
+                } else {
+                    UnauthenticatedAccountView()
+                }
             }
-            .padding()
             .navigationTitle("Account")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -28,10 +29,21 @@ struct AccountView: View {
                     }
                 }
             }
+            .alert("Authentication Error", isPresented: .constant(authStore.authError != nil)) {
+                Button("OK") {
+                    authStore.clearError()
+                }
+            } message: {
+                if let error = authStore.authError {
+                    Text(error.localizedDescription)
+                }
+            }
         }
     }
 }
 
 #Preview {
     AccountView()
+        .environment(AuthenticationStore())
 }
+ 

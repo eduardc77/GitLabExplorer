@@ -18,7 +18,7 @@ public struct GitLabConfiguration: Sendable {
         baseURL: URL = URL(string: "https://gitlab.com")!,
         clientID: String,
         redirectURI: String,
-        scopes: [String] = ["read_user", "api", "read_api", "read_repository"],
+        scopes: [String] = ["read_user", "read_api", "read_repository"],
         graphQLPath: String = "/api/graphql",
         apiVersion: String = "v4"
     ) {

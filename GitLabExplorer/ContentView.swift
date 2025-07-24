@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(AuthenticationStore.self) private var authStore
     @State private var showingAccountSheet = false
     
     var body: some View {
@@ -36,6 +37,45 @@ struct ContentView: View {
     }
 }
 
+// MARK: - Account Button
+
+struct AccountButton: View {
+    @Environment(AuthenticationStore.self) private var authStore
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Group {
+                if let user = authStore.currentUser {
+                    // Show user avatar when authenticated
+                    AsyncImage(url: user.avatarUrl) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Circle()
+                            .fill(.blue.gradient)
+                            .overlay {
+                                Text(String(user.name.prefix(1)))
+                                    .foregroundColor(.white)
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                            }
+                    }
+                    .frame(width: 28, height: 28)
+                    .clipShape(Circle())
+                } else {
+                    // Show generic icon when not authenticated
+                    Image(systemName: authStore.isAuthenticated ? "person.crop.circle.fill" : "person.crop.circle")
+                        .font(.title2)
+                        .foregroundColor(authStore.isAuthenticated ? .blue : .primary)
+                }
+            }
+        }
+    }
+}
+
 #Preview {
     ContentView()
+        .environment(AuthenticationStore())
 }

@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		CED6CF5F2E30544B00E6B240 /* GitLabNetwork in Frameworks */ = {isa = PBXBuildFile; productRef = CED6CF5E2E30544B00E6B240 /* GitLabNetwork */; };
+		CE01BE452E31B1FF00FF935D /* GitLabNetwork in Frameworks */ = {isa = PBXBuildFile; productRef = CE01BE442E31B1FF00FF935D /* GitLabNetwork */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,9 +34,22 @@
 		CED6CF5D2E30543100E6B240 /* GitLabNetwork */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = GitLabNetwork; path = Packages/GitLabNetwork; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		CE01BE472E31B67900FF935D /* Exceptions for "GitLabExplorer" folder in "GitLabExplorer" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = CED6CB4E2E30346600E6B240 /* GitLabExplorer */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		CED6CB512E30346600E6B240 /* GitLabExplorer */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				CE01BE472E31B67900FF935D /* Exceptions for "GitLabExplorer" folder in "GitLabExplorer" target */,
+			);
 			path = GitLabExplorer;
 			sourceTree = "<group>";
 		};
@@ -57,7 +70,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CED6CF5F2E30544B00E6B240 /* GitLabNetwork in Frameworks */,
+				CE01BE452E31B1FF00FF935D /* GitLabNetwork in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -128,7 +141,7 @@
 			);
 			name = GitLabExplorer;
 			packageProductDependencies = (
-				CED6CF5E2E30544B00E6B240 /* GitLabNetwork */,
+				CE01BE442E31B1FF00FF935D /* GitLabNetwork */,
 			);
 			productName = GitLabExplorer;
 			productReference = CED6CB4F2E30346600E6B240 /* GitLabExplorer.app */;
@@ -439,6 +452,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GitLabExplorer/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -477,6 +491,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GitLabExplorer/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -631,7 +646,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		CED6CF5E2E30544B00E6B240 /* GitLabNetwork */ = {
+		CE01BE442E31B1FF00FF935D /* GitLabNetwork */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = GitLabNetwork;
 		};
