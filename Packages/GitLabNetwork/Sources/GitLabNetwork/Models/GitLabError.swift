@@ -31,6 +31,7 @@ public enum GitLabError: Error, LocalizedError, Sendable {
     // General errors
     case decodingError(String)
     case encodingError(String)
+    case operationFailed(String)
     case unknown(Error)
     
     public var errorDescription: String? {
@@ -71,6 +72,8 @@ public enum GitLabError: Error, LocalizedError, Sendable {
             return "Decoding error: \(message)"
         case .encodingError(let message):
             return "Encoding error: \(message)"
+        case .operationFailed(let message):
+            return "Operation failed: \(message)"
         case .unknown(let error):
             return "Unknown error: \(error.localizedDescription)"
         }

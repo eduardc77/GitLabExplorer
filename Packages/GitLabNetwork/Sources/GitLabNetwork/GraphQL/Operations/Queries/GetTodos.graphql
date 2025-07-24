@@ -1,0 +1,60 @@
+query GetTodos($first: Int = 20, $after: String, $state: [TodoStateEnum!]) {
+  currentUser {
+    todos(first: $first, after: $after, state: $state) {
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      edges {
+        cursor
+        node {
+          id
+          body
+          state
+          createdAt
+          action
+          targetType
+          targetEntity {
+            __typename
+            ... on Issue {
+              id
+              title
+              issueWebUrl: webUrl
+              issueAuthor: author {
+                id
+                name
+                username
+                avatarUrl
+              }
+            }
+            ... on MergeRequest {
+              id
+              title
+              mergeRequestWebUrl: webUrl
+              mergeRequestAuthor: author {
+                id
+                name
+                username
+                avatarUrl
+              }
+            }
+          }
+          project {
+            id
+            name
+            fullPath
+            avatarUrl
+          }
+          author {
+            id
+            name
+            username
+            avatarUrl
+          }
+        }
+      }
+    }
+  }
+} 

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import GitLabNetwork
 
 struct ContentView: View {
     @Environment(AuthenticationStore.self) private var authStore
@@ -25,6 +26,11 @@ struct ContentView: View {
                     Text("Users")
                 }
             
+            NotificationsView()
+                .tabItem {
+                    NotificationTabItem()
+                }
+            
             ExploreView(showingAccountSheet: $showingAccountSheet)
                 .tabItem {
                     Image(systemName: "magnifyingglass")
@@ -33,6 +39,31 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showingAccountSheet) {
             AccountView()
+        }
+    }
+}
+
+// MARK: - Notification Tab Item
+
+struct NotificationTabItem: View {
+    @Environment(NotificationsStore.self) private var notificationsStore
+    
+    var body: some View {
+        ZStack {
+            Image(systemName: "bell")
+            Text("Notifications")
+            
+            // Unread badge
+            if notificationsStore.unreadCount > 0 {
+                Text("\(notificationsStore.unreadCount)")
+                    .font(.caption2)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(.red)
+                    .clipShape(Capsule())
+                    .offset(x: 12, y: -8)
+            }
         }
     }
 }

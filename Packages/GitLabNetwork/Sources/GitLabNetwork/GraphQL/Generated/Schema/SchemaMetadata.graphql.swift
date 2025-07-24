@@ -49,6 +49,7 @@ extension GitLabAPI {
       case "MergeRequestAuthor": return GitLabAPI.Objects.MergeRequestAuthor
       case "MergeRequestParticipant": return GitLabAPI.Objects.MergeRequestParticipant
       case "MergeRequestReviewer": return GitLabAPI.Objects.MergeRequestReviewer
+      case "Mutation": return GitLabAPI.Objects.Mutation
       case "Namespace": return GitLabAPI.Objects.Namespace
       case "PageInfo": return GitLabAPI.Objects.PageInfo
       case "Project": return GitLabAPI.Objects.Project
@@ -56,6 +57,10 @@ extension GitLabAPI {
       case "ProjectMinimalAccess": return GitLabAPI.Objects.ProjectMinimalAccess
       case "Query": return GitLabAPI.Objects.Query
       case "Snippet": return GitLabAPI.Objects.Snippet
+      case "Todo": return GitLabAPI.Objects.Todo
+      case "TodoConnection": return GitLabAPI.Objects.TodoConnection
+      case "TodoEdge": return GitLabAPI.Objects.TodoEdge
+      case "TodoMarkDonePayload": return GitLabAPI.Objects.TodoMarkDonePayload
       case "UserCore": return GitLabAPI.Objects.UserCore
       case "UserCoreConnection": return GitLabAPI.Objects.UserCoreConnection
       case "UserCoreEdge": return GitLabAPI.Objects.UserCoreEdge

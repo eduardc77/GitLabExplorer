@@ -79,7 +79,41 @@ public actor GraphQLClient {
         return result
     }
     
-
+    /// Execute a GraphQL mutation with authentication and error handling
+    public func executeMutation<Mutation: GraphQLMutation>(_ mutation: Mutation) async throws -> GraphQLResult<Mutation.Data> {
+        // Get auth token
+        let token = try await authProvider.getAuthToken()
+        let context = AuthContext(token: token)
+        
+        // Execute mutation with proper isolation
+        let result: GraphQLResult<Mutation.Data> = try await withCheckedThrowingContinuation { continuation in
+            apolloClient.perform(
+                mutation: mutation,
+                context: context,
+                queue: .main
+            ) { performResult in
+                switch performResult {
+                case .success(let graphQLResult):
+                    continuation.resume(returning: graphQLResult)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+        
+        // Handle GraphQL errors
+        if let errors = result.errors, !errors.isEmpty {
+            throw GitLabError.graphQLErrors(errors.map { error in
+                GitLabError.GraphQLErrorDetail(
+                    message: error.message ?? "Unknown error",
+                    path: error.path?.compactMap { "\($0)" } ?? [],
+                    apolloExtensions: error.extensions
+                )
+            })
+        }
+        
+        return result
+    }
     
     /// Clear the Apollo cache
     public func clearCache() async throws {
