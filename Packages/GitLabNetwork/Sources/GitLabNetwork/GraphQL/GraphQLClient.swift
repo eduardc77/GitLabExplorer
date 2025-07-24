@@ -41,16 +41,14 @@ public actor GraphQLClient {
     
     // MARK: - Public API
     
-    /// Get current authenticated user
-    public func getCurrentUser() async throws -> GitLabUser? {
-        let query = GitLabAPI.CurrentUserQuery()
-        
+    /// Execute a GraphQL query with authentication and error handling
+    public func executeQuery<Query: GraphQLQuery>(_ query: Query) async throws -> GraphQLResult<Query.Data> {
         // Get auth token
         let token = try await authProvider.getAuthToken()
         let context = AuthContext(token: token)
         
         // Execute query with proper isolation
-        let result: GraphQLResult<GitLabAPI.CurrentUserQuery.Data> = try await withCheckedThrowingContinuation { continuation in
+        let result: GraphQLResult<Query.Data> = try await withCheckedThrowingContinuation { continuation in
             apolloClient.fetch(
                 query: query,
                 cachePolicy: .returnCacheDataElseFetch,
@@ -78,73 +76,10 @@ public actor GraphQLClient {
             })
         }
         
-        // Convert to domain model
-        guard let apolloUser = result.data?.currentUser else {
-            return nil
-        }
-        
-        return GitLabUser(
-            id: String(apolloUser.id),
-            username: apolloUser.username,
-            name: apolloUser.name,
-            email: apolloUser.publicEmail,
-            avatarUrl: apolloUser.avatarUrl.flatMap(URL.init),
-            bio: apolloUser.bio,
-            location: apolloUser.location,
-            webUrl: URL(string: apolloUser.webUrl),
-            createdAt: apolloUser.createdAt.flatMap { ISO8601DateFormatter().date(from: $0) },
-            lastActivityOn: apolloUser.lastActivityOn.flatMap { ISO8601DateFormatter().date(from: $0) },
-            state: UserState(rawValue: apolloUser.state.rawValue) ?? .active
-        )
+        return result
     }
     
-    /// Search for users
-    public func searchUsers(query: String, limit: Int = 20, after: String? = nil) async throws -> [GitLabUser] {
-        let searchQuery = GitLabAPI.SearchUsersQuery(
-            query: query,
-            first: .some(limit),
-            after: after.map { GraphQLNullable.some($0) } ?? .none
-        )
-        
-        // Get auth token
-        let token = try await authProvider.getAuthToken()
-        let context = AuthContext(token: token)
-        
-        // Execute query with proper isolation
-        let result: GraphQLResult<GitLabAPI.SearchUsersQuery.Data> = try await withCheckedThrowingContinuation { continuation in
-            apolloClient.fetch(
-                query: searchQuery,
-                cachePolicy: .returnCacheDataElseFetch,
-                contextIdentifier: nil,
-                context: context,
-                queue: .main
-            ) { fetchResult in
-                switch fetchResult {
-                case .success(let graphQLResult):
-                    continuation.resume(returning: graphQLResult)
-                case .failure(let error):
-                    continuation.resume(throwing: error)
-                }
-            }
-        }
-        
-        // Handle GraphQL errors
-        if let errors = result.errors, !errors.isEmpty {
-            throw GitLabError.graphQLErrors(errors.map { error in
-                GitLabError.GraphQLErrorDetail(
-                    message: error.message ?? "Unknown error",
-                    path: error.path?.compactMap { "\($0)" } ?? [],
-                    apolloExtensions: error.extensions
-                )
-            })
-        }
-        
-        // Convert to domain models
-        return result.data?.users?.edges?.compactMap { edge -> GitLabUser? in
-            guard let node = edge?.node else { return nil }
-            return GitLabUser.from(node.fragments.userDetails)
-        } ?? []
-    }
+
     
     /// Clear the Apollo cache
     public func clearCache() async throws {

@@ -1,4 +1,5 @@
 import Foundation
+@preconcurrency import Apollo
 
 /// Service for user operations (OTHER users, not current user)
 /// Current user is managed by AuthenticationService
@@ -19,7 +20,19 @@ public final class UserService: Sendable {
     
     /// Search for users
     public func searchUsers(query: String, limit: Int = 20) async throws -> [GitLabUser] {
-        return try await graphQLClient.searchUsers(query: query, limit: limit)
+        let searchQuery = GitLabAPI.SearchUsersQuery(
+            query: query,
+            first: .some(limit),
+            after: .none
+        )
+        
+        let result = try await graphQLClient.executeQuery(searchQuery)
+        
+        // Convert to domain models
+        return result.data?.users?.edges?.compactMap { edge -> GitLabUser? in
+            guard let node = edge?.node else { return nil }
+            return GitLabUser.from(node.fragments.userDetails)
+        } ?? []
     }
     
     /// Get user profile by ID

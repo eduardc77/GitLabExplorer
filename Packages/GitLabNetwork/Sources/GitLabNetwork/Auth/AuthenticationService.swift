@@ -1,5 +1,5 @@
 import Foundation
-import Apollo
+@preconcurrency import Apollo
 
 /// Service for handling GitLab authentication
 public final class AuthenticationService: Sendable {
@@ -60,7 +60,27 @@ public final class AuthenticationService: Sendable {
             throw GitLabError.authenticationRequired
         }
         
-        return try await graphQLClient.getCurrentUser()
+        let query = GitLabAPI.CurrentUserQuery()
+        let result = try await graphQLClient.executeQuery(query)
+        
+        // Convert to domain model
+        guard let apolloUser = result.data?.currentUser else {
+            return nil
+        }
+        
+        return GitLabUser(
+            id: String(apolloUser.id),
+            username: apolloUser.username,
+            name: apolloUser.name,
+            email: apolloUser.publicEmail,
+            avatarUrl: apolloUser.avatarUrl.flatMap(URL.init),
+            bio: apolloUser.bio,
+            location: apolloUser.location,
+            webUrl: URL(string: apolloUser.webUrl),
+            createdAt: apolloUser.createdAt.flatMap { ISO8601DateFormatter().date(from: $0) },
+            lastActivityOn: apolloUser.lastActivityOn.flatMap { ISO8601DateFormatter().date(from: $0) },
+            state: UserState(rawValue: apolloUser.state.rawValue) ?? .active
+        )
     }
     
     /// Get a valid access token for API calls
