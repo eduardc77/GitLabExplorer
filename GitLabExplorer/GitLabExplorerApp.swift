@@ -13,6 +13,7 @@ import BackgroundTasks
 struct GitLabExplorerApp: App {
     @State private var authStore: AuthenticationStore
     @State private var notificationsStore: NotificationsStore
+    @State private var projectsStore: ProjectsStore
     @State private var localNotificationService = LocalNotificationService()
 
     init() {
@@ -27,13 +28,16 @@ struct GitLabExplorerApp: App {
         
         // Create services using shared dependencies
         let notificationService = NotificationService(graphQLClient: graphQLClient, authService: authService)
+        let projectService = ProjectService(graphQLClient: graphQLClient, authService: authService)
         
         // Create stores with injected dependencies
         let authStore = AuthenticationStore(authService: authService, configuration: configuration)
         let notificationsStore = NotificationsStore(notificationService: notificationService, authStore: authStore)
+        let projectsStore = ProjectsStore(projectService: projectService, authStore: authStore)
 
         self._authStore = State(initialValue: authStore)
         self._notificationsStore = State(initialValue: notificationsStore)
+        self._projectsStore = State(initialValue: projectsStore)
     }
 
     var body: some Scene {
@@ -41,6 +45,7 @@ struct GitLabExplorerApp: App {
             ContentView()
                 .environment(authStore)
                 .environment(notificationsStore)
+                .environment(projectsStore)
                 .environment(localNotificationService)
                 .task {
                     // Check authentication state on app launch
