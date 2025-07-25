@@ -1,11 +1,11 @@
-import SwiftUI
+import Foundation
 import GitLabNetwork
 import AuthenticationServices
 
 /// Main authentication store for the app
 @MainActor
 @Observable
-final class AuthenticationStore: NSObject, ASWebAuthenticationPresentationContextProviding {
+public final class AuthenticationStore {
     private let authService: AuthenticationService
     private let configuration: GitLabConfiguration
 
@@ -17,30 +17,26 @@ final class AuthenticationStore: NSObject, ASWebAuthenticationPresentationContex
 
     private(set) var authError: GitLabError?
 
-    override init() {
-        self.configuration = GitLabConfiguration(
-            baseURL: URL(string: "https://gitlab.com")!,
-            clientID: "4e130d01a21e737b17beb754b61d3018831b5c564069e649375761dd9d772b7e",
-            redirectURI: "gitlabexplorer://auth/callback"
-        )
-        
-        // Create shared GraphQL client
-        let tokenManager = TokenManager(configuration: configuration)
-        let authProvider = GitLabAuthProvider(tokenManager: tokenManager)
-        let graphQLClient = GraphQLClient(configuration: configuration, authProvider: authProvider)
-        
-        // Initialize auth service
-        self.authService = AuthenticationService(
-            configuration: configuration,
-            graphQLClient: graphQLClient
-        )
-        
-        super.init()
+    public init(authService: AuthenticationService, configuration: GitLabConfiguration) {
+        self.authService = authService
+        self.configuration = configuration
         
         // Set up initial state
         Task {
             await refreshAuthState()
         }
+    }
+
+    /// Convenience initializer for SwiftUI previews
+    public convenience init() {
+        let configuration = GitLabConfiguration.preview()
+        
+        let tokenManager = TokenManager(configuration: configuration)
+        let authProvider = GitLabAuthProvider(tokenManager: tokenManager)
+        let graphQLClient = GraphQLClient(configuration: configuration, authProvider: authProvider)
+        let authService = AuthenticationService(configuration: configuration, graphQLClient: graphQLClient)
+        
+        self.init(authService: authService, configuration: configuration)
     }
     
     // MARK: - Authentication Actions
@@ -68,7 +64,7 @@ final class AuthenticationStore: NSObject, ASWebAuthenticationPresentationContex
         }
     }
     
-                session.presentationContextProvider = self
+                session.presentationContextProvider = AuthenticationHandler.shared
                 session.prefersEphemeralWebBrowserSession = true  // Use private session - no remembered login
                 session.start()
             }
@@ -120,13 +116,14 @@ final class AuthenticationStore: NSObject, ASWebAuthenticationPresentationContex
             currentUser = nil
             isAuthenticating = false
             isLoadingUser = false
-        }
+                }
+    }
 }
 
-    // MARK: - ASWebAuthenticationPresentationContextProviding
+final class AuthenticationHandler: NSObject, ASWebAuthenticationPresentationContextProviding {
+    static let shared = AuthenticationHandler()
     
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        // Use your cleaner approach here
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let window = windowScene.windows.first else {
             return UIWindow()

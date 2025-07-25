@@ -1,5 +1,4 @@
 import Foundation
-import SwiftUI
 import GitLabNetwork
 
 /// Main store for managing notification state in the UI layer
@@ -42,6 +41,22 @@ final class NotificationsStore {
         
         // Start observing authentication changes
         observeAuthenticationChanges()
+    }
+
+    /// Convenience initializer for SwiftUI previews
+    convenience init() {
+        let authStore = AuthenticationStore()
+        
+        // Use preview configuration
+        let configuration = GitLabConfiguration.preview()
+        
+        let tokenManager = TokenManager(configuration: configuration)
+        let authProvider = GitLabAuthProvider(tokenManager: tokenManager)
+        let graphQLClient = GraphQLClient(configuration: configuration, authProvider: authProvider)
+        let authService = AuthenticationService(configuration: configuration, graphQLClient: graphQLClient)
+        let notificationService = NotificationService(graphQLClient: graphQLClient, authService: authService)
+        
+        self.init(notificationService: notificationService, authStore: authStore)
     }
     
     // MARK: - Public Actions

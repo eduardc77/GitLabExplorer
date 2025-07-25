@@ -1,3 +1,10 @@
+//
+//  NotificationSettingsView.swift
+//  GitLabExplorer
+//
+//  Created by User on 7/23/25.
+//
+
 import SwiftUI
 import GitLabNetwork
 
@@ -179,53 +186,8 @@ private struct NotificationTypeRow: View {
     }
 }
 
-// MARK: - Preview
-
 #Preview {
     NotificationSettingsView()
-        .environment(NotificationsStore(
-            notificationService: NotificationService(
-                graphQLClient: GraphQLClient(
-                    configuration: GitLabConfiguration(
-                        baseURL: URL(string: "https://gitlab.com")!,
-                        clientID: "test",
-                        redirectURI: "test://callback"
-                    ),
-                    authProvider: GitLabAuthProvider(
-                        tokenManager: TokenManager(
-                            configuration: GitLabConfiguration(
-                                baseURL: URL(string: "https://gitlab.com")!,
-                                clientID: "test",
-                                redirectURI: "test://callback"
-                            )
-                        )
-                    )
-                ),
-                authService: AuthenticationService(
-                    configuration: GitLabConfiguration(
-                        baseURL: URL(string: "https://gitlab.com")!,
-                        clientID: "test",
-                        redirectURI: "test://callback"
-                    ),
-                    graphQLClient: GraphQLClient(
-                        configuration: GitLabConfiguration(
-                            baseURL: URL(string: "https://gitlab.com")!,
-                            clientID: "test",
-                            redirectURI: "test://callback"
-                        ),
-                        authProvider: GitLabAuthProvider(
-                            tokenManager: TokenManager(
-                                configuration: GitLabConfiguration(
-                                    baseURL: URL(string: "https://gitlab.com")!,
-                                    clientID: "test",
-                                    redirectURI: "test://callback"
-                                )
-                            )
-                        )
-                    )
-                )
-            ),
-            authStore: AuthenticationStore()
-        ))
+        .environment(NotificationsStore())
         .environment(AuthenticationStore())
 } 

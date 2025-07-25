@@ -10,8 +10,9 @@ import GitLabNetwork
 
 struct ContentView: View {
     @Environment(AuthenticationStore.self) private var authStore
+    @Environment(NotificationsStore.self) private var notificationsStore
     @State private var showingAccountSheet = false
-    
+
     var body: some View {
         TabView {
             ProjectsView(showingAccountSheet: $showingAccountSheet)
@@ -19,18 +20,20 @@ struct ContentView: View {
                     Image(systemName: "folder")
                     Text("Projects")
                 }
-            
+
             UsersView(showingAccountSheet: $showingAccountSheet)
                 .tabItem {
                     Image(systemName: "person.2")
                     Text("Users")
                 }
-            
+
             NotificationsView()
                 .tabItem {
-                    NotificationTabItem()
+                    Image(systemName: "bell")
+                    Text("Notifications")
                 }
-            
+                .badge(notificationsStore.unreadCount)
+
             ExploreView(showingAccountSheet: $showingAccountSheet)
                 .tabItem {
                     Image(systemName: "magnifyingglass")
@@ -43,37 +46,12 @@ struct ContentView: View {
     }
 }
 
-// MARK: - Notification Tab Item
-
-struct NotificationTabItem: View {
-    @Environment(NotificationsStore.self) private var notificationsStore
-    
-    var body: some View {
-        ZStack {
-            Image(systemName: "bell")
-            Text("Notifications")
-            
-            // Unread badge
-            if notificationsStore.unreadCount > 0 {
-                Text("\(notificationsStore.unreadCount)")
-                    .font(.caption2)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(.red)
-                    .clipShape(Capsule())
-                    .offset(x: 12, y: -8)
-            }
-        }
-    }
-}
-
 // MARK: - Account Button
 
 struct AccountButton: View {
     @Environment(AuthenticationStore.self) private var authStore
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             Group {

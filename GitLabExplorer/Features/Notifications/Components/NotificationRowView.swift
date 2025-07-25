@@ -1,3 +1,10 @@
+//
+//  NotificationRowView.swift
+//  GitLabExplorer
+//
+//  Created by User on 7/23/25.
+//
+
 import SwiftUI
 import GitLabNetwork
 
@@ -108,8 +115,6 @@ struct NotificationRowView: View {
         return Text(actionDescription)
     }
 }
-
-// MARK: - Preview
 
 #Preview("Unread Assignment") {
     List {

@@ -15,5 +15,23 @@
 			</array>
 		</dict>
 	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>background-app-refresh</string>
+		<string>background-processing</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.gitlabexplorer.background-refresh</string>
+	</array>
+	<key>GitLabConfiguration</key>
+	<dict>
+		<key>BaseURL</key>
+		<string>https://gitlab.com</string>
+		<key>ClientID</key>
+		<string>4e130d01a21e737b17beb754b61d3018831b5c564069e649375761dd9d772b7e</string>
+		<key>RedirectURI</key>
+		<string>gitlabexplorer://auth/callback</string>
+	</dict>
 </dict>
 </plist>
