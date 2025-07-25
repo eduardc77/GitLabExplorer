@@ -11,17 +11,16 @@ import GitLabNetwork
 struct ContentView: View {
     @Environment(AuthenticationStore.self) private var authStore
     @Environment(NotificationsStore.self) private var notificationsStore
-    @State private var showingAccountSheet = false
 
     var body: some View {
         TabView {
-            ProjectsView(showingAccountSheet: $showingAccountSheet)
+            ProjectsView()
                 .tabItem {
                     Image(systemName: "folder")
                     Text("Projects")
                 }
 
-            UsersView(showingAccountSheet: $showingAccountSheet)
+            UsersView()
                 .tabItem {
                     Image(systemName: "person.2")
                     Text("Users")
@@ -34,14 +33,17 @@ struct ContentView: View {
                 }
                 .badge(notificationsStore.unreadCount)
 
-            ExploreView(showingAccountSheet: $showingAccountSheet)
+            ExploreView()
                 .tabItem {
                     Image(systemName: "magnifyingglass")
                     Text("Explore")
                 }
-        }
-        .sheet(isPresented: $showingAccountSheet) {
+            
             AccountView()
+                .tabItem {
+                    Image(systemName: "person.crop.circle")
+                    Text("Account")
+                }
         }
     }
 }

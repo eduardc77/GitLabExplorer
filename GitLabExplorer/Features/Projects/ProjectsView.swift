@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct ProjectsView: View {
-    @Binding var showingAccountSheet: Bool
     
     var body: some View {
         NavigationStack {
@@ -19,13 +18,7 @@ struct ProjectsView: View {
             }
             .navigationTitle("Projects")
             .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    AccountButton {
-                        showingAccountSheet = true
-                    }
-                }
-            }
+
             .refreshable {
                 // TODO: Refresh projects
             }
@@ -34,6 +27,6 @@ struct ProjectsView: View {
 }
 
 #Preview {
-    ProjectsView(showingAccountSheet: .constant(false))
+    ProjectsView()
         .environment(AuthenticationStore())
 }

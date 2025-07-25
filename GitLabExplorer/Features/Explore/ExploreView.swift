@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct ExploreView: View {
-    @Binding var showingAccountSheet: Bool
     
     var body: some View {
         NavigationStack {
@@ -25,18 +24,12 @@ struct ExploreView: View {
             }
             .navigationTitle("Explore")
             .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    AccountButton {
-                        showingAccountSheet = true
-                    }
-                }
-            }
+
         }
     }
 }
 
 #Preview {
-    ExploreView(showingAccountSheet: .constant(false))
+    ExploreView()
         .environment(AuthenticationStore())
 }

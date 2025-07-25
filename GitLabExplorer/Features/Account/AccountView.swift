@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct AccountView: View {
-    @Environment(\.dismiss) private var dismiss
     @Environment(AuthenticationStore.self) private var authStore
+    @State private var showingSettings = false
     
     var body: some View {
         NavigationStack {
@@ -21,13 +21,19 @@ struct AccountView: View {
                 }
             }
             .navigationTitle("Account")
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
+                if authStore.isAuthenticated {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            showingSettings = true
+                        } label: {
+                            Image(systemName: "gearshape")
+                        }
                     }
                 }
+            }
+            .sheet(isPresented: $showingSettings) {
+                AccountSettingsView()
             }
             .alert("Authentication Error", isPresented: .constant(authStore.authError != nil)) {
                 Button("OK") {

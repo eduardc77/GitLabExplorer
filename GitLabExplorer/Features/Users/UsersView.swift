@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct UsersView: View {
-    @Binding var showingAccountSheet: Bool
     @State private var searchText = ""
     
     var body: some View {
@@ -20,13 +19,7 @@ struct UsersView: View {
             }
             .navigationTitle("Users")
             .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    AccountButton {
-                        showingAccountSheet = true
-                    }
-                }
-            }
+
             .searchable(text: $searchText, prompt: "Search users...")
             .refreshable {
                 // TODO: Refresh users
@@ -36,6 +29,6 @@ struct UsersView: View {
 }
 
 #Preview {
-    UsersView(showingAccountSheet: .constant(false))
+    UsersView()
         .environment(AuthenticationStore())
 }

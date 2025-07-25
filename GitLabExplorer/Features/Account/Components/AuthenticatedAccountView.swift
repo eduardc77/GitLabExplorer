@@ -9,10 +9,12 @@ import SwiftUI
 
 struct AuthenticatedAccountView: View {
     var body: some View {
-        Form {
-            UserProfileSection()
-            AccountSettingsSection()
-            SignOutSection()
+        ScrollView {
+            VStack(spacing: 24) {
+                UserProfileSection()
+                YourWorkSection()
+            }
+            .padding()
         }
     }
 }
