@@ -72,7 +72,7 @@ public final class AuthenticationStore {
     }
     
                 session.presentationContextProvider = AuthenticationHandler.shared
-                session.prefersEphemeralWebBrowserSession = true  // Use private session - no remembered login
+                session.prefersEphemeralWebBrowserSession = false  // remembered login
                 session.start()
             }
             

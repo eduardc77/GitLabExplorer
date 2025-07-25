@@ -1,0 +1,43 @@
+query GetProjects($first: Int = 20, $after: String) {
+  projects(
+    first: $first
+    after: $after
+    visibility: public
+    sort: ACTIVITY_DESC
+  ) {
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+    edges {
+      cursor
+      node {
+        id
+        name
+        path
+        fullPath
+        description
+        visibility
+        avatarUrl
+        webUrl
+        starCount
+        forkCount
+        lastActivityAt
+        createdAt
+        updatedAt
+        repository {
+          rootRef
+          empty
+        }
+        namespace {
+          id
+          name
+          path
+          fullPath
+        }
+      }
+    }
+  }
+} 

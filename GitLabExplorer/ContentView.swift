@@ -11,39 +11,27 @@ import GitLabNetwork
 struct ContentView: View {
     @Environment(AuthenticationStore.self) private var authStore
     @Environment(NotificationsStore.self) private var notificationsStore
-
+    
     var body: some View {
         TabView {
-            ProjectsView()
+            HomeView()
                 .tabItem {
-                    Image(systemName: "folder")
-                    Text("Projects")
+                    Image(systemName: "house")
+                    Text("Home")
                 }
-
-            UsersView()
-                .tabItem {
-                    Image(systemName: "person.2")
-                    Text("Users")
-                }
-
+            
             NotificationsView()
                 .tabItem {
                     Image(systemName: "bell")
                     Text("Notifications")
                 }
                 .badge(notificationsStore.unreadCount)
-
-            ExploreView()
-                .tabItem {
-                    Image(systemName: "magnifyingglass")
-                    Text("Explore")
-                }
             
             AccountView()
                 .tabItem {
                     Image(systemName: "person.crop.circle")
                     Text("Account")
-                }
+            }
         }
     }
 }
@@ -53,7 +41,7 @@ struct ContentView: View {
 struct AccountButton: View {
     @Environment(AuthenticationStore.self) private var authStore
     let action: () -> Void
-
+    
     var body: some View {
         Button(action: action) {
             Group {
