@@ -9,7 +9,7 @@ on:
 jobs:
   # Simple CI for all pushes and PRs
   ios-ci:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     
     steps:
     - name: Checkout code
