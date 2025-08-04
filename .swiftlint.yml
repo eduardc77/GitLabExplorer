@@ -1,0 +1,13 @@
+# SwiftLint configuration
+disabled_rules:
+  - trailing_whitespace
+opt_in_rules:
+  - empty_count
+  - empty_string
+included:
+  - Sources
+excluded:
+  - Carthage
+  - Pods
+  - .build
+line_length: 120

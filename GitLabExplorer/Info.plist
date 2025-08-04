@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.gitlabexplorer.background-refresh</string>
+	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -15,15 +19,6 @@
 			</array>
 		</dict>
 	</array>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>background-app-refresh</string>
-		<string>background-processing</string>
-	</array>
-	<key>BGTaskSchedulerPermittedIdentifiers</key>
-	<array>
-		<string>com.gitlabexplorer.background-refresh</string>
-	</array>
 	<key>GitLabConfiguration</key>
 	<dict>
 		<key>BaseURL</key>
@@ -33,5 +28,10 @@
 		<key>RedirectURI</key>
 		<string>gitlabexplorer://auth/callback</string>
 	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>background-app-refresh</string>
+		<string>background-processing</string>
+	</array>
 </dict>
 </plist>

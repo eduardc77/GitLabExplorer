@@ -1,0 +1,68 @@
+# .github/workflows/ios.yml
+name: iOS CI Pipeline
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # Simple CI for all pushes and PRs
+  ios-ci:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: 'latest-stable'
+    
+    - name: Install SwiftLint
+      run: brew install swiftlint
+    
+    - name: SwiftLint
+      run: swiftlint lint --reporter github-actions-logging
+      continue-on-error: true  # Don't fail build on lint warnings initially
+    
+    - name: Build App
+      run: |
+        xcodebuild build \
+          -scheme "GitLabExplorer" \
+          -destination "platform=iOS Simulator,name=iPhone 15,OS=17.0" \
+          -configuration Debug
+    
+    - name: Run Unit Tests
+      run: |
+        xcodebuild test \
+          -scheme "GitLabExplorer" \
+          -destination "platform=iOS Simulator,name=iPhone 15,OS=17.0" \
+          -configuration Debug \
+          -enableCodeCoverage YES \
+          -only-testing:com.team.GitLabExplorerTests \
+          -resultBundlePath UnitTestResults.xcresult
+    
+    - name: Run UI Tests
+      run: |
+        xcodebuild test \
+          -scheme "GitLabExplorer" \
+          -destination "platform=iOS Simulator,name=iPhone 15,OS=17.0" \
+          -configuration Debug \
+          -only-testing:com.team.GitLabExplorerUITests \
+          -resultBundlePath UITestResults.xcresult
+    
+    - name: Upload Unit Test Results
+      uses: actions/upload-artifact@v4
+      if: always()  # Upload even if tests fail
+      with:
+        name: unit-test-results-${{ github.run_number }}
+        path: UnitTestResults.xcresult
+    
+    - name: Upload UI Test Results
+      uses: actions/upload-artifact@v4
+      if: always()  # Upload even if tests fail
+      with:
+        name: ui-test-results-${{ github.run_number }}
+        path: UITestResults.xcresult
