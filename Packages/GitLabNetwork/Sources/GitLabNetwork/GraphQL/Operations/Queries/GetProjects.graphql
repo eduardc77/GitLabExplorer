@@ -1,9 +1,9 @@
-query GetProjects($first: Int = 20, $after: String) {
+query GetProjects($first: Int = 20, $after: String, $sort: String) {
   projects(
     first: $first
     after: $after
-    visibility: public
-    sort: ACTIVITY_DESC
+    visibilityLevel: public
+    sort: $sort
   ) {
     pageInfo {
       hasNextPage
@@ -23,7 +23,7 @@ query GetProjects($first: Int = 20, $after: String) {
         avatarUrl
         webUrl
         starCount
-        forkCount
+        forksCount
         lastActivityAt
         createdAt
         updatedAt

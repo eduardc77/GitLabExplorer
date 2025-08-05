@@ -14,10 +14,15 @@ import GitLabNetwork
 @Observable
 final class ProjectsStore {
     
+    // MARK: - Configuration
+    
+    /// Default page size for pagination
+    private let defaultPageSize = 20
+    
     // MARK: - Published State
     
     /// Current projects
-    public private(set) var projects: [GitLabProject] = []
+    public private(set) var projects: [ProjectSummary] = []
     
     /// Loading state
     public private(set) var isLoading = false
@@ -34,17 +39,27 @@ final class ProjectsStore {
     
     // MARK: - Dependencies
     
-    private let projectService: ProjectService
+    private let discoveryService: ProjectDiscoveryServiceProtocol
+    private let searchService: ProjectSearchServiceProtocol
+    private let authStore: AuthenticationStore
     
     // MARK: - Initialization
     
-    init(projectService: ProjectService) {
-        self.projectService = projectService
+    init(discoveryService: ProjectDiscoveryServiceProtocol, searchService: ProjectSearchServiceProtocol, authStore: AuthenticationStore) {
+        self.discoveryService = discoveryService
+        self.searchService = searchService
+        self.authStore = authStore
+    }
+    
+    /// Convenience initializer for SwiftUI previews
+    convenience init(discoveryService: ProjectDiscoveryServiceProtocol, searchService: ProjectSearchServiceProtocol) {
+        let authStore = AuthenticationStore()
+        self.init(discoveryService: discoveryService, searchService: searchService, authStore: authStore)
     }
     
     // MARK: - Public Actions
     
-    /// Initial load of projects
+    /// Initial load of projects (using discovery data)
     func loadProjects() async {
         guard !isLoading else { return }
         
@@ -52,9 +67,9 @@ final class ProjectsStore {
         error = nil
         
         do {
-            let result = try await projectService.getProjects(first: 20, after: nil)
-            
-            projects = result.projects
+            // Load most starred projects as the main list using GraphQL with proper cursor-based pagination
+            let result = try await discoveryService.getMostStarredProjects(limit: defaultPageSize, after: nil)
+            projects = result.projects.map { $0.toSummary() }
             hasNextPage = result.pageInfo.hasNextPage
             endCursor = result.pageInfo.endCursor
             
@@ -72,10 +87,17 @@ final class ProjectsStore {
         isLoadingMore = true
         
         do {
-            let result = try await projectService.getProjects(first: 20, after: endCursor)
+            // Load more projects using GraphQL cursor-based pagination
+            let result = try await discoveryService.getMostStarredProjects(limit: defaultPageSize, after: endCursor)
             
-            // Append new projects to existing ones
-            projects.append(contentsOf: result.projects)
+            // Append new projects to existing ones, avoiding duplicates
+            let newProjects = result.projects.map { $0.toSummary() }.filter { newProject in
+                !projects.contains { existingProject in
+                    existingProject.id == newProject.id
+                }
+            }
+            
+            projects.append(contentsOf: newProjects)
             hasNextPage = result.pageInfo.hasNextPage
             endCursor = result.pageInfo.endCursor
             
@@ -99,19 +121,128 @@ final class ProjectsStore {
         error = nil
     }
     
+    // MARK: - Discovery Actions (REST Fallback)
+    
+    /// Load trending projects
+    func loadTrendingProjects() async {
+        guard !isLoading else { return }
+        
+        isLoading = true
+        error = nil
+        
+        do {
+            let result = try await discoveryService.getTrendingProjects(limit: defaultPageSize, after: nil)
+            
+            projects = result.projects.map { $0.toSummary() }
+            hasNextPage = result.pageInfo.hasNextPage
+            endCursor = result.pageInfo.endCursor
+            
+        } catch {
+            self.error = error as? GitLabError ?? GitLabError.unknown(error)
+        }
+        
+        isLoading = false
+    }
+    
+    /// Load most starred projects
+    func loadMostStarredProjects() async {
+        guard !isLoading else { return }
+        
+        isLoading = true
+        error = nil
+        
+        do {
+            let result = try await discoveryService.getMostStarredProjects(limit: defaultPageSize, after: nil)
+            
+            projects = result.projects.map { $0.toSummary() }
+            hasNextPage = result.pageInfo.hasNextPage
+            endCursor = result.pageInfo.endCursor
+            
+        } catch {
+            self.error = error as? GitLabError ?? GitLabError.unknown(error)
+        }
+        
+        isLoading = false
+    }
+    
+    /// Load active projects
+    func loadActiveProjects() async {
+        guard !isLoading else { return }
+        
+        isLoading = true
+        error = nil
+        
+        do {
+            let result = try await discoveryService.getActiveProjects(limit: defaultPageSize, after: nil)
+            
+            projects = result.projects.map { $0.toSummary() }
+            hasNextPage = result.pageInfo.hasNextPage
+            endCursor = result.pageInfo.endCursor
+            
+        } catch {
+            self.error = error as? GitLabError ?? GitLabError.unknown(error)
+        }
+        
+        isLoading = false
+    }
+    
+    // MARK: - Search Actions
+    
+    /// Search projects by query
+    func searchProjects(query: String, sort: ProjectSort = .relevance) async {
+        guard !isLoading else { return }
+        
+        isLoading = true
+        error = nil
+        
+        do {
+            let searchResults = try await searchService.searchProjects(query: query, sort: sort)
+            
+            projects = searchResults
+            hasNextPage = searchResults.count >= defaultPageSize
+            endCursor = "2"
+            
+        } catch {
+            self.error = error as? GitLabError ?? GitLabError.unknown(error)
+        }
+        
+        isLoading = false
+    }
+    
+    /// Search projects by programming language
+    func searchProjectsByLanguage(_ language: String) async {
+        guard !isLoading else { return }
+        
+        isLoading = true 
+        error = nil
+        
+        do {
+            let languageResults = try await searchService.searchProjectsByLanguage(language: language, limit: defaultPageSize)
+            
+            projects = languageResults
+            hasNextPage = languageResults.count >= defaultPageSize
+            endCursor = "2"
+            
+        } catch {
+            self.error = error as? GitLabError ?? GitLabError.unknown(error)
+        }
+        
+        isLoading = false
+    }
+    
     // MARK: - Preview Helper
     
     /// Convenience initializer for SwiftUI previews
     convenience init() {
         let configuration = GitLabConfiguration.preview()
-        
         let tokenManager = TokenManager(configuration: configuration)
         let authProvider = GitLabAuthProvider(tokenManager: tokenManager)
-        let graphQLClient = GraphQLClient(configuration: configuration, authProvider: authProvider)
-        let authService = AuthenticationService(configuration: configuration, graphQLClient: graphQLClient)
-        let projectService = ProjectService(graphQLClient: graphQLClient, authService: authService)
         
-        self.init(projectService: projectService)
+        // Create the specialized services
+        let discoveryService = ProjectDiscoveryService(configuration: configuration, authProvider: authProvider)
+        let searchService = ProjectSearchService(configuration: configuration, authProvider: authProvider)
+        
+        self.init(discoveryService: discoveryService, searchService: searchService)
     }
 }
 

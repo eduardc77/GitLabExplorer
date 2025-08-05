@@ -43,8 +43,11 @@ public actor GraphQLClient {
     
     /// Execute a GraphQL query with authentication and error handling
     public func executeQuery<Query: GraphQLQuery>(_ query: Query) async throws -> GraphQLResult<Query.Data> {
-        // Get auth token
-        let token = try await authProvider.getAuthToken()
+        // Check if this is a public query (no authentication required)
+        let isPublicQuery = isPublicGraphQLQuery(query)
+        
+        // Get auth token only for private queries
+        let token = isPublicQuery ? nil : await authProvider.getAuthToken()
         let context = AuthContext(token: token)
         
         // Execute query with proper isolation
@@ -79,10 +82,71 @@ public actor GraphQLClient {
         return result
     }
     
+    /// Check if a GraphQL query is public (no authentication required)
+    private func isPublicGraphQLQuery<Query: GraphQLQuery>(_ query: Query) -> Bool {
+        // Public queries that don't require authentication
+        let publicQueryNames = [
+            "GetProjectsQuery"  // Public project discovery
+        ]
+        
+        let queryName = String(describing: type(of: query))
+        return publicQueryNames.contains { queryName.contains($0) }
+    }
+    
+    /// Execute a GraphQL query and extract data immediately to ensure Sendable compliance
+    /// This method is designed to work with actor isolation by returning only the data
+    public func executeQueryAndExtractData<Query: GraphQLQuery, T: Sendable>(
+        _ query: Query,
+        dataExtractor: @Sendable (Query.Data) throws -> T
+    ) async throws -> T {
+        // Check if this is a public query (no authentication required)
+        let isPublicQuery = isPublicGraphQLQuery(query)
+        
+        // Get auth token only for private queries
+        let token = isPublicQuery ? nil : await authProvider.getAuthToken()
+        let context = AuthContext(token: token)
+        
+        // Execute query with proper isolation
+        let result: GraphQLResult<Query.Data> = try await withCheckedThrowingContinuation { continuation in
+            apolloClient.fetch(
+                query: query,
+                cachePolicy: .returnCacheDataElseFetch,
+                contextIdentifier: nil,
+                context: context,
+                queue: .main
+            ) { fetchResult in
+                switch fetchResult {
+                case .success(let graphQLResult):
+                    continuation.resume(returning: graphQLResult)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+        
+        // Handle GraphQL errors
+        if let errors = result.errors, !errors.isEmpty {
+            throw GitLabError.graphQLErrors(errors.map { error in
+                GitLabError.GraphQLErrorDetail(
+                    message: error.message ?? "Unknown error",
+                    path: error.path?.compactMap { "\($0)" } ?? [],
+                    apolloExtensions: error.extensions
+                )
+            })
+        }
+        
+        // Extract data immediately and return only Sendable type
+        guard let data = result.data else {
+            throw GitLabError.invalidResponse("No data received from GraphQL query")
+        }
+        
+        return try dataExtractor(data)
+    }
+    
     /// Execute a GraphQL mutation with authentication and error handling
     public func executeMutation<Mutation: GraphQLMutation>(_ mutation: Mutation) async throws -> GraphQLResult<Mutation.Data> {
-        // Get auth token
-        let token = try await authProvider.getAuthToken()
+        // Get auth token (optional for public APIs)
+        let token = await authProvider.getAuthToken()
         let context = AuthContext(token: token)
         
         // Execute mutation with proper isolation

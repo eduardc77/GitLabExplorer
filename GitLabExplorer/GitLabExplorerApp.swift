@@ -28,12 +28,13 @@ struct GitLabExplorerApp: App {
         
         // Create services using shared dependencies
         let notificationService = NotificationService(graphQLClient: graphQLClient, authService: authService)
-        let projectService = ProjectService(graphQLClient: graphQLClient, authService: authService)
+        let discoveryService = ProjectDiscoveryService(configuration: configuration, authProvider: authProvider)
+        let searchService = ProjectSearchService(configuration: configuration, authProvider: authProvider)
         
         // Create stores with injected dependencies
         let authStore = AuthenticationStore(authService: authService, configuration: configuration)
         let notificationsStore = NotificationsStore(notificationService: notificationService, authStore: authStore)
-        let projectsStore = ProjectsStore(projectService: projectService)
+        let projectsStore = ProjectsStore(discoveryService: discoveryService, searchService: searchService, authStore: authStore)
         
         self._authStore = State(initialValue: authStore)
         self._notificationsStore = State(initialValue: notificationsStore)

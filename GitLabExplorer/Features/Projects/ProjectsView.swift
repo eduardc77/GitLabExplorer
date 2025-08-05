@@ -52,13 +52,16 @@ private struct ProjectsList: View {
         List(store.projects) { project in
             RealProjectRowView(project: project)
                 .onAppear {
-                    // Trigger infinite scroll when we reach near the end
-                    if store.projects.last?.id == project.id {
+                    // Trigger infinite scroll when we reach the last few items
+                    if shouldLoadMore(for: project) {
                         Task {
                             await store.loadMoreProjects()
                         }
                     }
                 }
+        }
+        .refreshable {
+            await store.refresh()
         }
         .overlay {
             if store.isLoading && store.projects.isEmpty {
@@ -81,17 +84,41 @@ private struct ProjectsList: View {
                 .padding()
             }
         }
+        .alert("Error", isPresented: .constant(store.error != nil)) {
+            Button("OK") {
+                store.clearError()
+            }
+        } message: {
+            if let error = store.error {
+                Text(error.localizedDescription)
+            }
+        }
+    }
+    
+    /// Determines if we should load more projects when this project appears
+    private func shouldLoadMore(for project: ProjectSummary) -> Bool {
+        guard store.hasNextPage && !store.isLoadingMore && !store.isLoading else {
+            return false
+        }
+        
+        // Load more when we're within the last 3 items
+        guard let lastIndex = store.projects.lastIndex(where: { $0.id == project.id }),
+              lastIndex >= store.projects.count - 3 else {
+            return false
+        }
+        
+        return true
     }
 }
 
 // MARK: - Real Project Row View
 
 private struct RealProjectRowView: View {
-    let project: GitLabProject
+    let project: ProjectSummary
     
     var body: some View {
         HStack(spacing: 12) {
-            AsyncImage(url: project.avatarUrl) { image in
+            AsyncImage(url: project.avatarURL) { image in
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -128,17 +155,44 @@ private struct RealProjectRowView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    if let lastActivity = project.lastActivityAt {
-                        Text("Updated \(lastActivity, style: .relative)")
+                    Text("Updated \(timeAgoText(from: project.updatedAt))")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                    }
                 }
             }
             
             Spacer()
         }
         .padding(.vertical, 4)
+    }
+    
+    /// Format time ago text in a user-friendly way without constantly updating seconds
+    private func timeAgoText(from date: Date) -> String {
+        let now = Date()
+        let timeInterval = now.timeIntervalSince(date)
+        
+        let minutes = Int(timeInterval / 60)
+        let hours = Int(timeInterval / 3600)
+        let days = Int(timeInterval / 86400)
+        let weeks = Int(timeInterval / 604800)
+        let months = Int(timeInterval / 2629746)
+        let years = Int(timeInterval / 31556952)
+        
+        if years > 0 {
+            return "\(years)y ago"
+        } else if months > 0 {
+            return "\(months)mo ago"
+        } else if weeks > 0 {
+            return "\(weeks)w ago"
+        } else if days > 0 {
+            return "\(days)d ago"
+        } else if hours > 0 {
+            return "\(hours)h ago"
+        } else if minutes > 0 {
+            return "\(minutes)m ago"
+        } else {
+            return "just now"
+        }
     }
 }
 

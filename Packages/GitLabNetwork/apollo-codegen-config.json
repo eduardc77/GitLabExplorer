@@ -24,6 +24,14 @@
       "inSchemaModule": {}
     }
   },
+  "options": {
+    "cocoapodsCompatibleImportStatements": false,
+    "warningsOnDeprecatedUsage": "include",
+    "conversionStrategies": {
+      "enumCases": "camelCase"
+    },
+    "pruneGeneratedFiles": true
+  },
   "schemaDownloadConfiguration": {
     "downloadMethod": {
       "introspection": {

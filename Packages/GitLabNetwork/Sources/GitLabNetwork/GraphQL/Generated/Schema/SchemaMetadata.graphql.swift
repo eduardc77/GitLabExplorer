@@ -54,8 +54,11 @@ extension GitLabAPI {
       case "PageInfo": return GitLabAPI.Objects.PageInfo
       case "Project": return GitLabAPI.Objects.Project
       case "ProjectComplianceViolation": return GitLabAPI.Objects.ProjectComplianceViolation
+      case "ProjectConnection": return GitLabAPI.Objects.ProjectConnection
+      case "ProjectEdge": return GitLabAPI.Objects.ProjectEdge
       case "ProjectMinimalAccess": return GitLabAPI.Objects.ProjectMinimalAccess
       case "Query": return GitLabAPI.Objects.Query
+      case "Repository": return GitLabAPI.Objects.Repository
       case "Snippet": return GitLabAPI.Objects.Snippet
       case "Todo": return GitLabAPI.Objects.Todo
       case "TodoConnection": return GitLabAPI.Objects.TodoConnection
