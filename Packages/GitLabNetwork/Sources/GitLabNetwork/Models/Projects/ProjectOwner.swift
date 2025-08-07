@@ -1,6 +1,6 @@
 import Foundation
 
-public struct ProjectOwner: Sendable, Codable, Equatable {
+public struct ProjectOwner: Sendable, Codable, Equatable, Hashable {
     public let login: String
     public let name: String?
     public let avatarURL: URL?

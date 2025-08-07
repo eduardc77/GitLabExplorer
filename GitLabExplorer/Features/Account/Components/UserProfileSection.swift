@@ -14,21 +14,11 @@ struct UserProfileSection: View {
         VStack(spacing: 16) {
             // Avatar and basic info
             HStack(spacing: 16) {
-                AsyncImage(url: authStore.currentUser?.avatarUrl) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    Circle()
-                        .fill(.gray.gradient)
-                        .overlay {
-                            Image(systemName: "person")
-                                .foregroundColor(.white)
-                                .font(.title)
-                        }
-                }
-                .frame(width: 80, height: 80)
-                .clipShape(Circle())
+                AvatarView(
+                    imageURL: authStore.currentUser?.avatarUrl,
+                    size: 80,
+                    placeholder: "👤"
+                )
                 
                 VStack(alignment: .leading, spacing: 4) {
                     if let user = authStore.currentUser {

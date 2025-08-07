@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		CE01BE452E31B1FF00FF935D /* GitLabNetwork in Frameworks */ = {isa = PBXBuildFile; productRef = CE01BE442E31B1FF00FF935D /* GitLabNetwork */; };
+		CE9E14032E45269D0040F287 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = CE9E14022E45269D0040F287 /* Kingfisher */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -70,6 +71,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE9E14032E45269D0040F287 /* Kingfisher in Frameworks */,
 				CE01BE452E31B1FF00FF935D /* GitLabNetwork in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -142,6 +144,7 @@
 			name = GitLabExplorer;
 			packageProductDependencies = (
 				CE01BE442E31B1FF00FF935D /* GitLabNetwork */,
+				CE9E14022E45269D0040F287 /* Kingfisher */,
 			);
 			productName = GitLabExplorer;
 			productReference = CED6CB4F2E30346600E6B240 /* GitLabExplorer.app */;
@@ -225,6 +228,9 @@
 			);
 			mainGroup = CED6CB462E30346600E6B240;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				CE9E14012E45269D0040F287 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CED6CB502E30346600E6B240 /* Products */;
 			projectDirPath = "";
@@ -645,10 +651,26 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		CE9E14012E45269D0040F287 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.5.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		CE01BE442E31B1FF00FF935D /* GitLabNetwork */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = GitLabNetwork;
+		};
+		CE9E14022E45269D0040F287 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CE9E14012E45269D0040F287 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
