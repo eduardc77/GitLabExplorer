@@ -45,6 +45,18 @@ jobs:
           -only-testing:GitLabExplorerTests \
           -resultBundlePath UnitTestResults.xcresult
     
+    - name: Run Package Tests
+      run: |
+        # Run tests for all packages in the Packages directory
+        for package in Packages/*/; do
+          if [ -f "$package/Package.swift" ]; then
+            echo "Testing package: $package"
+            cd "$package"
+            swift test
+            cd ../..
+          fi
+        done
+    
     - name: Run UI Tests
       run: |
         xcodebuild test \
