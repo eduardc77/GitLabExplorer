@@ -32,14 +32,14 @@ jobs:
       run: |
         xcodebuild build \
           -scheme "GitLabExplorer" \
-          -destination "platform=iOS Simulator,name=iPhone 15,OS=17.0" \
+          -destination "platform=iOS Simulator,name=iPhone 15,OS=17.0.1" \
           -configuration Debug
     
     - name: Run Unit Tests
       run: |
         xcodebuild test \
           -scheme "GitLabExplorer" \
-          -destination "platform=iOS Simulator,name=iPhone 15,OS=17.0" \
+          -destination "platform=iOS Simulator,name=iPhone 15,OS=17.0.1" \
           -configuration Debug \
           -enableCodeCoverage YES \
           -only-testing:com.team.GitLabExplorerTests \
@@ -49,7 +49,7 @@ jobs:
       run: |
         xcodebuild test \
           -scheme "GitLabExplorer" \
-          -destination "platform=iOS Simulator,name=iPhone 15,OS=17.0" \
+          -destination "platform=iOS Simulator,name=iPhone 15,OS=17.0.1" \
           -configuration Debug \
           -only-testing:com.team.GitLabExplorerUITests \
           -resultBundlePath UITestResults.xcresult
