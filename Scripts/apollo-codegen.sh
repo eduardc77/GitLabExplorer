@@ -20,13 +20,14 @@ POSSIBLE_PATHS=(
     "${SRCROOT}/../Packages/GitLabNetwork"
     "$(pwd)/Packages/GitLabNetwork"
     "./Packages/GitLabNetwork"
+    "$(pwd)"  # Current directory if we're already in GitLabNetwork
 )
 
 GITLAB_NETWORK_DIR=""
 
 for path in "${POSSIBLE_PATHS[@]}"; do
     echo "🔍 Checking path: $path"
-    if [ -d "$path" ]; then
+    if [ -d "$path" ] && [ -f "$path/apollo-codegen-config.json" ]; then
         GITLAB_NETWORK_DIR="$path"
         echo "✅ Found GitLabNetwork at: $GITLAB_NETWORK_DIR"
         break
@@ -43,9 +44,11 @@ if [ -z "$GITLAB_NETWORK_DIR" ]; then
     echo "📂 Current working directory contents:"
     ls -la
     
-    echo ""
-    echo "📂 SRCROOT contents:"
-    ls -la "${SRCROOT}" || echo "SRCROOT not accessible"
+    if [ -n "$SRCROOT" ]; then
+        echo ""
+        echo "📂 SRCROOT contents:"
+        ls -la "${SRCROOT}" || echo "SRCROOT not accessible"
+    fi
     
     exit 1
 fi
@@ -68,7 +71,7 @@ if [ ! -f "./apollo-ios-cli" ]; then
         cd .build/checkouts/apollo-ios/CLI
         tar -xf apollo-ios-cli.tar.gz
         cp apollo-ios-cli "../../../../"
-        cd ../../../
+        cd ../../../../  # Go back to the original directory
         echo "✅ Apollo CLI extracted successfully"
     else
         echo "❌ Error: Apollo CLI not found. Please run 'swift build' first to download dependencies."

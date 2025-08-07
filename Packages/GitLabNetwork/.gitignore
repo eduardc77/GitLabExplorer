@@ -9,5 +9,6 @@ DerivedData/
 
 # Apollo iOS
 apollo-ios-cli/
+apollo-ios-cli
 apollo-generate/
 apollo-run-script/
