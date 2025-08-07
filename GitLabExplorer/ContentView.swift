@@ -9,9 +9,9 @@ import SwiftUI
 import GitLabNetwork
 
 struct ContentView: View {
-    @Environment(AuthenticationStore.self) private var authStore
     @Environment(NotificationsStore.self) private var notificationsStore
-    
+    @State private var homeCoordinator = HomeCoordinator()
+
     var body: some View {
         TabView {
             HomeView()
@@ -33,6 +33,7 @@ struct ContentView: View {
                     Text("Account")
             }
         }
+        .environment(homeCoordinator)
     }
 }
 
@@ -47,22 +48,11 @@ struct AccountButton: View {
             Group {
                 if let user = authStore.currentUser {
                     // Show user avatar when authenticated
-                    AsyncImage(url: user.avatarUrl) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        Circle()
-                            .fill(.blue.gradient)
-                            .overlay {
-                                Text(String(user.name.prefix(1)))
-                                    .foregroundColor(.white)
-                                    .font(.caption)
-                                    .fontWeight(.semibold)
-                            }
-                    }
-                    .frame(width: 28, height: 28)
-                    .clipShape(Circle())
+                    AvatarView(
+                        imageURL: user.avatarUrl,
+                        size: 28,
+                        placeholder: String(user.name.prefix(1))
+                    )
                 } else {
                     // Show generic icon when not authenticated
                     Image(systemName: authStore.isAuthenticated ? "person.crop.circle.fill" : "person.crop.circle")

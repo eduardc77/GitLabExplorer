@@ -13,7 +13,7 @@ import BackgroundTasks
 struct GitLabExplorerApp: App {
     @State private var authStore: AuthenticationStore
     @State private var notificationsStore: NotificationsStore
-    @State private var projectsStore: ProjectsStore
+    @State private var serviceFactory: ServiceFactory
     @State private var localNotificationService = LocalNotificationService()
     
     init() {
@@ -23,22 +23,20 @@ struct GitLabExplorerApp: App {
         // Create shared dependencies - SINGLE INSTANCES
         let tokenManager = TokenManager(configuration: configuration)
         let authProvider = GitLabAuthProvider(tokenManager: tokenManager)
-        let graphQLClient = GraphQLClient(configuration: configuration, authProvider: authProvider)
-        let authService = AuthenticationService(configuration: configuration, graphQLClient: graphQLClient)
         
-        // Create services using shared dependencies
-        let notificationService = NotificationService(graphQLClient: graphQLClient, authService: authService)
-        let discoveryService = ProjectDiscoveryService(configuration: configuration, authProvider: authProvider)
-        let searchService = ProjectSearchService(configuration: configuration, authProvider: authProvider)
+        // Create service factory
+        let serviceFactory = ServiceFactory(configuration: configuration, authProvider: authProvider)
         
         // Create stores with injected dependencies
-        let authStore = AuthenticationStore(authService: authService, configuration: configuration)
-        let notificationsStore = NotificationsStore(notificationService: notificationService, authStore: authStore)
-        let projectsStore = ProjectsStore(discoveryService: discoveryService, searchService: searchService, authStore: authStore)
+        let authStore = AuthenticationStore(authService: serviceFactory.authService, configuration: configuration)
+        let notificationsStore = serviceFactory.createNotificationsStore(authStore: authStore)
         
         self._authStore = State(initialValue: authStore)
         self._notificationsStore = State(initialValue: notificationsStore)
-        self._projectsStore = State(initialValue: projectsStore)
+        self._serviceFactory = State(initialValue: serviceFactory)
+
+        // Configure Kingfisher caching
+        KingfisherConfig.configure()
     }
     
     var body: some Scene {
@@ -46,7 +44,7 @@ struct GitLabExplorerApp: App {
             ContentView()
                 .environment(authStore)
                 .environment(notificationsStore)
-                .environment(projectsStore)
+                .environment(serviceFactory)
                 .environment(localNotificationService)
                 .task {
                     // Check authentication state on app launch

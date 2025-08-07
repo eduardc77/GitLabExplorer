@@ -13,51 +13,33 @@ struct ProjectRowView: View {
     
     var body: some View {
         HStack {
-            // Project avatar or placeholder
-            if let avatarURL = project.avatarURL {
-                AsyncImage(url: avatarURL) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(.blue.gradient)
-                        .overlay {
-                            Image(systemName: "folder")
-                                .foregroundColor(.white)
-                        }
-                }
-                .frame(width: 40, height: 40)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-            } else {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(.blue.gradient)
-                    .frame(width: 40, height: 40)
-                    .overlay {
-                        Image(systemName: "folder")
-                            .foregroundColor(.white)
-                    }
-            }
+            ProjectImageView(
+                imageURL: project.avatarURL,
+                aspectRatio: 1,
+                cornerRadius: 8
+            )
+            .frame(width: 40, height: 40)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(project.name)
                     .font(.headline)
                     .lineLimit(1)
-                
+
                 if let description = project.description {
                     Text(description)
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .lineLimit(2)
                 }
-                
-                HStack(spacing: 8) {
-                    if project.starCount > 0 {
-                        Label("\(project.starCount)", systemImage: "star")
-                    }
-                    if project.forkCount > 0 {
-                        Label("\(project.forkCount)", systemImage: "arrow.branch")
-                    }
+
+                HStack {
+                    Label("\(project.starCount)", systemImage: "star")
+                        .tightSpacing()
+                        .lineLimit(1)
+                    Label("\(project.forkCount)", systemImage: "arrow.branch")
+                        .tightSpacing()
+                        .lineLimit(1)
+                    Spacer()
                     Text("Updated \(project.updatedAt, format: .relative(presentation: .named))")
                 }
                 .font(.caption2)

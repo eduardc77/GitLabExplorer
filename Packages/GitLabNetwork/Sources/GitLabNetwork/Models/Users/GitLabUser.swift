@@ -1,7 +1,7 @@
 import Foundation
 
 /// Represents a GitLab user in the application domain
-public struct GitLabUser: Sendable, Codable, Identifiable, Equatable {
+public struct GitLabUser: Sendable, Codable, Identifiable, Equatable, Hashable {
     public let id: String
     public let username: String
     public let name: String
@@ -45,7 +45,7 @@ public struct GitLabUser: Sendable, Codable, Identifiable, Equatable {
 }
 
 /// GitLab user account states
-public enum UserState: String, Sendable, Codable, CaseIterable {
+public enum UserState: String, Sendable, Codable, CaseIterable, Hashable {
     case active
     case blocked
     case deactivated

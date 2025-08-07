@@ -41,22 +41,14 @@ final class ProjectsStore {
     
     private let discoveryService: ProjectDiscoveryServiceProtocol
     private let searchService: ProjectSearchServiceProtocol
-    private let authStore: AuthenticationStore
     
     // MARK: - Initialization
     
-    init(discoveryService: ProjectDiscoveryServiceProtocol, searchService: ProjectSearchServiceProtocol, authStore: AuthenticationStore) {
+    init(discoveryService: ProjectDiscoveryServiceProtocol, searchService: ProjectSearchServiceProtocol) {
         self.discoveryService = discoveryService
         self.searchService = searchService
-        self.authStore = authStore
     }
-    
-    /// Convenience initializer for SwiftUI previews
-    convenience init(discoveryService: ProjectDiscoveryServiceProtocol, searchService: ProjectSearchServiceProtocol) {
-        let authStore = AuthenticationStore()
-        self.init(discoveryService: discoveryService, searchService: searchService, authStore: authStore)
-    }
-    
+
     // MARK: - Public Actions
     
     /// Initial load of projects (using discovery data)
@@ -120,7 +112,17 @@ final class ProjectsStore {
     func clearError() {
         error = nil
     }
-    
+
+    /// Reset store state (clear all projects and pagination)
+    func reset() {
+        projects = []
+        endCursor = nil
+        hasNextPage = false
+        isLoading = false
+        isLoadingMore = false
+        error = nil
+    }
+
     // MARK: - Discovery Actions (REST Fallback)
     
     /// Load trending projects

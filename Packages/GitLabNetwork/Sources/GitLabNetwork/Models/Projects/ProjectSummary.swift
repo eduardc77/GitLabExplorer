@@ -1,7 +1,7 @@
 import Foundation
 
 /// Lightweight project model for lists, search results, discovery
-public struct ProjectSummary: Sendable, Codable, Identifiable, Equatable {
+public struct ProjectSummary: Sendable, Codable, Identifiable, Equatable, Hashable {
     public let id: String
     public let name: String
     public let nameWithOwner: String
