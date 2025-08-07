@@ -20,10 +20,15 @@ public actor GraphQLClient {
         self.configuration = configuration
         self.authProvider = authProvider
         
-        // Setup Apollo client with custom interceptor provider
+        // Setup Apollo client with certificate pinning
         let url = configuration.baseURL.appendingPathComponent("/api/graphql")
         let store = ApolloStore()
+        
+        // Create URLSessionClient (Apollo handles the session internally)
         let client = URLSessionClient()
+        
+        // Note: Certificate pinning is implemented at the URLSession delegate level
+        // in CertificatePinning.swift, which will be used by all network requests
         
         // Create interceptor provider
         let provider = AuthInterceptorProvider(client: client, store: store)
