@@ -42,6 +42,7 @@ jobs:
           -destination "platform=iOS Simulator,name=iPhone 15" \
           -configuration Debug \
           -enableCodeCoverage YES \
+          -only-testing:GitLabExplorerTests \
           -resultBundlePath UnitTestResults.xcresult
     
     - name: Run Package Tests
@@ -62,6 +63,7 @@ jobs:
           -scheme "GitLabExplorer" \
           -destination "platform=iOS Simulator,name=iPhone 15" \
           -configuration Debug \
+          -only-testing:GitLabExplorerUITests \
           -resultBundlePath UITestResults.xcresult
     
     - name: Upload Unit Test Results
