@@ -4,7 +4,7 @@
 
 ## Key Features
 
-🔐 **Secure Authentication** - OAuth 2.0 + PKCE flow with secure keychain token storage  
+🔐 **Secure Authentication** - OAuth 2.0 + PKCE flow with secure keychain token storage and certificate pinning  
 📱 **Native iOS Experience** - Built with SwiftUI and modern iOS design patterns  
 🔔 **Real-time Notifications** - Background sync with badge counts and push notifications  
 🔍 **Project Discovery** - Browse repositories, users, and groups with search functionality  
@@ -13,9 +13,9 @@
 
 ## Tech Stack
 
-- **Frontend**: SwiftUI, iOS 17+
+- **Frontend**: SwiftUI, iOS 17+, Kingfisher for optimized image loading
 - **API**: GitLab GraphQL API exclusively (no REST endpoints)
-- **Networking**: Apollo GraphQL client with generated type-safe operations
+- **Networking**: Apollo GraphQL client with generated type-safe operations and TLS certificate pinning
 - **Authentication**: OAuth 2.0 + PKCE with KeychainAccess
 - **Architecture**: MVVM with Observable state management
 - **Concurrency**: Swift 6 async/await with Sendable compliance
