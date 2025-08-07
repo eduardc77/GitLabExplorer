@@ -14,7 +14,7 @@
 ## Tech Stack
 
 - **Frontend**: SwiftUI, iOS 17+
-- **API**: GitLab GraphQL API exclusively (no REST endpoints)
+- **API**: GitLab GraphQL API exclusively
 - **Networking**: Apollo GraphQL client with generated type-safe operations
 - **Authentication**: OAuth 2.0 + PKCE with KeychainAccess
 - **Architecture**: MVVM with Observable state management
