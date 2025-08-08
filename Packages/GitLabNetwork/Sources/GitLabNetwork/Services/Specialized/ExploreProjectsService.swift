@@ -1,16 +1,16 @@
 import Foundation
 
-// MARK: - Project Discovery Service Protocol
-public protocol ProjectDiscoveryServiceProtocol: Sendable {
+// MARK: - Explore Projects Service Protocol
+public protocol ExploreProjectsServiceProtocol: Sendable {
     func getTrendingProjects(limit: Int, after: String?) async throws -> ProjectsResult
     func getMostStarredProjects(limit: Int, after: String?) async throws -> ProjectsResult
     func getActiveProjects(limit: Int, after: String?) async throws -> ProjectsResult
 }
 
-// MARK: - Project Discovery Service
-/// Handles project discovery operations using GraphQL API
-/// Manages its own caching strategy optimized for discovery data
-public final class ProjectDiscoveryService: ProjectDiscoveryServiceProtocol {
+// MARK: - Explore Projects Service
+/// Handles project exploration operations using GraphQL API
+/// Manages its own caching strategy optimized for exploration data
+public final class ExploreProjectsService: ExploreProjectsServiceProtocol {
     
     // MARK: - Properties
     private let projectService: ProjectService
@@ -27,7 +27,7 @@ public final class ProjectDiscoveryService: ProjectDiscoveryServiceProtocol {
         self.init(projectService: projectService)
     }
     
-    // MARK: - Discovery Operations
+    // MARK: - Exploration Operations
     
     /// Get trending projects - sorted by recent activity
     public func getTrendingProjects(limit: Int = 20, after: String? = nil) async throws -> ProjectsResult {
@@ -44,15 +44,15 @@ public final class ProjectDiscoveryService: ProjectDiscoveryServiceProtocol {
         return try await projectService.getProjects(first: limit, after: after, sort: "latest_activity_desc")
     }
     
-    /// Get comprehensive discovery data in parallel
-    public func getDiscoveryData(limit: Int = 10) async throws -> ProjectDiscoveryData {
+    /// Get comprehensive exploration data in parallel
+    public func getExplorationData(limit: Int = 10) async throws -> ProjectExplorationData {
         async let trending = getTrendingProjects(limit: limit, after: nil)
         async let starred = getMostStarredProjects(limit: limit, after: nil)
         async let active = getActiveProjects(limit: limit, after: nil)
         
         let results = try await (trending, starred, active)
         
-        return ProjectDiscoveryData(
+        return ProjectExplorationData(
             trending: results.0.projects.map { $0.toSummary() },
             mostStarred: results.1.projects.map { $0.toSummary() },
             active: results.2.projects.map { $0.toSummary() }

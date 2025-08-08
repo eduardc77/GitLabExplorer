@@ -114,18 +114,6 @@ private struct ProjectsList: View {
     }
 }
 
-// MARK: - Empty State
-
-private struct EmptyProjectsView: View {
-    var body: some View {
-        ContentUnavailableView {
-            Label("No Projects", systemImage: "folder.badge.questionmark")
-        } description: {
-            Text("No projects found. Try refreshing or check your connection.")
-        }
-    }
-}
-
 #Preview {
     ProjectsView(serviceFactory: ServiceFactory(configuration: GitLabConfiguration.fromInfoPlist(), authProvider: GitLabAuthProvider(tokenManager: TokenManager(configuration: GitLabConfiguration.fromInfoPlist()))))
 }

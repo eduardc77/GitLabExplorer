@@ -39,13 +39,13 @@ final class ProjectsStore {
     
     // MARK: - Dependencies
     
-    private let discoveryService: ProjectDiscoveryServiceProtocol
+    private let exploreProjectsService: ExploreProjectsServiceProtocol
     private let searchService: ProjectSearchServiceProtocol
     
     // MARK: - Initialization
     
-    init(discoveryService: ProjectDiscoveryServiceProtocol, searchService: ProjectSearchServiceProtocol) {
-        self.discoveryService = discoveryService
+    init(exploreProjectsService: ExploreProjectsServiceProtocol, searchService: ProjectSearchServiceProtocol) {
+        self.exploreProjectsService = exploreProjectsService
         self.searchService = searchService
     }
 
@@ -60,7 +60,7 @@ final class ProjectsStore {
         
         do {
             // Load most starred projects as the main list using GraphQL with proper cursor-based pagination
-            let result = try await discoveryService.getMostStarredProjects(limit: defaultPageSize, after: nil)
+            let result = try await exploreProjectsService.getMostStarredProjects(limit: defaultPageSize, after: nil)
             projects = result.projects.map { $0.toSummary() }
             hasNextPage = result.pageInfo.hasNextPage
             endCursor = result.pageInfo.endCursor
@@ -80,7 +80,7 @@ final class ProjectsStore {
         
         do {
             // Load more projects using GraphQL cursor-based pagination
-            let result = try await discoveryService.getMostStarredProjects(limit: defaultPageSize, after: endCursor)
+            let result = try await exploreProjectsService.getMostStarredProjects(limit: defaultPageSize, after: endCursor)
             
             // Append new projects to existing ones, avoiding duplicates
             let newProjects = result.projects.map { $0.toSummary() }.filter { newProject in
@@ -133,7 +133,7 @@ final class ProjectsStore {
         error = nil
         
         do {
-            let result = try await discoveryService.getTrendingProjects(limit: defaultPageSize, after: nil)
+            let result = try await exploreProjectsService.getTrendingProjects(limit: defaultPageSize, after: nil)
             
             projects = result.projects.map { $0.toSummary() }
             hasNextPage = result.pageInfo.hasNextPage
@@ -154,7 +154,7 @@ final class ProjectsStore {
         error = nil
         
         do {
-            let result = try await discoveryService.getMostStarredProjects(limit: defaultPageSize, after: nil)
+            let result = try await exploreProjectsService.getMostStarredProjects(limit: defaultPageSize, after: nil)
             
             projects = result.projects.map { $0.toSummary() }
             hasNextPage = result.pageInfo.hasNextPage
@@ -175,7 +175,7 @@ final class ProjectsStore {
         error = nil
         
         do {
-            let result = try await discoveryService.getActiveProjects(limit: defaultPageSize, after: nil)
+            let result = try await exploreProjectsService.getActiveProjects(limit: defaultPageSize, after: nil)
             
             projects = result.projects.map { $0.toSummary() }
             hasNextPage = result.pageInfo.hasNextPage
@@ -241,10 +241,10 @@ final class ProjectsStore {
         let authProvider = GitLabAuthProvider(tokenManager: tokenManager)
         
         // Create the specialized services
-        let discoveryService = ProjectDiscoveryService(configuration: configuration, authProvider: authProvider)
+        let exploreProjectsService = ExploreProjectsService(configuration: configuration, authProvider: authProvider)
         let searchService = ProjectSearchService(configuration: configuration, authProvider: authProvider)
         
-        self.init(discoveryService: discoveryService, searchService: searchService)
+        self.init(exploreProjectsService: exploreProjectsService, searchService: searchService)
     }
 }
 

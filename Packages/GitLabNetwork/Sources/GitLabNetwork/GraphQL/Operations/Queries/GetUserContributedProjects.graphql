@@ -1,0 +1,44 @@
+query GetUserContributedProjects($first: Int = 20, $after: String) {
+  projects(
+    first: $first
+    after: $after
+    membership: true
+  ) {
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+    edges {
+      cursor
+      node {
+        id
+        name
+        path
+        fullPath
+        description
+        visibility
+        avatarUrl
+        webUrl
+        starCount
+        forksCount
+        lastActivityAt
+        createdAt
+        updatedAt
+        repository {
+          rootRef
+          empty
+        }
+        namespace {
+          id
+          name
+          path
+          fullPath
+          avatarUrl
+          webUrl
+        }
+      }
+    }
+  }
+}

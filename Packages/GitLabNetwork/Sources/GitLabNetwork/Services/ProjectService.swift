@@ -13,7 +13,7 @@ public struct ProjectsResult: Sendable {
 
 // MARK: - Apollo Time Extension
 
-private extension GitLabAPI.Time {
+public extension GitLabAPI.Time {
     /// Convert Apollo Time (ISO 8601 string) to Date
     var date: Date? {
         let formatter = ISO8601DateFormatter()

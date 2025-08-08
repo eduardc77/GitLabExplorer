@@ -11,6 +11,7 @@ import GitLabNetwork
 struct ContentView: View {
     @Environment(NotificationsStore.self) private var notificationsStore
     @State private var homeCoordinator = HomeCoordinator()
+    @State private var accountCoordinator = AccountCoordinator()
 
     var body: some View {
         TabView {
@@ -34,6 +35,7 @@ struct ContentView: View {
             }
         }
         .environment(homeCoordinator)
+        .environment(accountCoordinator)
     }
 }
 

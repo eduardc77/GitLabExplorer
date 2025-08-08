@@ -6,53 +6,47 @@
 //
 
 import SwiftUI
+import GitLabNetwork
 
 struct YourWorkSection: View {
+    @Environment(ServiceFactory.self) private var serviceFactory
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        Section {
+            WorkItemRow(
+                icon: "folder.fill",
+                title: "Personal Projects",
+                subtitle: "Projects you own or maintain",
+                iconColor: .blue,
+                destination: .personalProjects
+            )
+
+            WorkItemRow(
+                icon: "person.2.fill",
+                title: "Groups",
+                subtitle: "Groups you are a member of",
+                iconColor: .green,
+                destination: .groups
+            )
+
+            WorkItemRow(
+                icon: "exclamationmark.circle.fill",
+                title: "Assigned Issues",
+                subtitle: "Issues assigned to you or created by you",
+                iconColor: .orange,
+                destination: .assignedIssues
+            )
+
+            WorkItemRow(
+                icon: "arrow.triangle.merge",
+                title: "Merge Requests",
+                subtitle: "Merge requests you created or need to review",
+                iconColor: .purple,
+                destination: .mergeRequests
+            )
+        } header: {
             Text("Your Work")
-                .font(.title2)
-                .fontWeight(.semibold)
-            
-            VStack(spacing: 12) {
-                WorkItemRow(
-                    icon: "folder.fill",
-                    title: "My Projects",
-                    subtitle: "Projects you own or contribute to",
-                    iconColor: .blue
-                ) {
-                    // TODO: Navigate to my projects
-                }
-                
-                WorkItemRow(
-                    icon: "person.2.fill",
-                    title: "My Groups",
-                    subtitle: "Groups you're a member of",
-                    iconColor: .green
-                ) {
-                    // TODO: Navigate to my groups
-                }
-                
-                WorkItemRow(
-                    icon: "exclamationmark.circle.fill",
-                    title: "My Issues",
-                    subtitle: "Issues assigned to you or created by you",
-                    iconColor: .orange
-                ) {
-                    // TODO: Navigate to my issues
-                }
-                
-                WorkItemRow(
-                    icon: "arrow.triangle.merge",
-                    title: "My Merge Requests",
-                    subtitle: "Merge requests you created or need to review",
-                    iconColor: .purple
-                ) {
-                    // TODO: Navigate to my merge requests
-                }
-            }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -63,39 +57,33 @@ struct WorkItemRow: View {
     let title: String
     let subtitle: String
     let iconColor: Color
-    let action: () -> Void
-    
+    let destination: AccountCoordinator.Destination
+
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: 16) {
+        NavigationLink(value: destination) {
+            HStack {
                 Image(systemName: icon)
                     .font(.title2)
                     .foregroundColor(iconColor)
                     .frame(width: 32, height: 32)
-                
-                VStack(alignment: .leading, spacing: 2) {
+
+                VStack(alignment: .leading) {
                     Text(title)
                         .font(.headline)
                         .foregroundColor(.primary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    
+
                     Text(subtitle)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
             }
-            .padding(.vertical, 8)
+            .padding(.vertical, 4)
         }
-        .buttonStyle(PlainButtonStyle())
     }
 }
 
 #Preview {
     YourWorkSection()
         .padding()
-} 
+        .environment(ServiceFactory(configuration: GitLabConfiguration.fromInfoPlist(), authProvider: GitLabAuthProvider(tokenManager: TokenManager(configuration: GitLabConfiguration.fromInfoPlist()))))
+}

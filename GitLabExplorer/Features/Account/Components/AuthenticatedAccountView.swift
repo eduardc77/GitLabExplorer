@@ -9,12 +9,9 @@ import SwiftUI
 
 struct AuthenticatedAccountView: View {
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                UserProfileSection()
-                YourWorkSection()
-            }
-            .padding()
+        Form {
+            UserProfileSection()
+            YourWorkSection()
         }
     }
 }

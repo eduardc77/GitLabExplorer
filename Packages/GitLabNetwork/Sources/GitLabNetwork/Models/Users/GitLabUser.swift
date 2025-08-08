@@ -61,7 +61,7 @@ extension GitLabUser {
             username: userDetails.username,
             name: userDetails.name,
             email: userDetails.publicEmail,
-            avatarUrl: userDetails.avatarUrl != nil ? URL(string: userDetails.avatarUrl!) : nil
+            avatarUrl: userDetails.avatarUrl.flatMap { URL(string: $0) }
         )
     }
     
@@ -72,7 +72,14 @@ extension GitLabUser {
             username: apolloUser.username,
             name: apolloUser.name,
             email: apolloUser.publicEmail,
-            avatarUrl: apolloUser.avatarUrl != nil ? URL(string: apolloUser.avatarUrl!) : nil
+            avatarUrl: apolloUser.avatarUrl.flatMap { URL(string: $0) },
+            bio: apolloUser.bio,
+            location: apolloUser.location,
+            webUrl: URL(string: apolloUser.webUrl),
+            publicEmail: apolloUser.publicEmail,
+            createdAt: apolloUser.createdAt?.date,
+            lastActivityOn: apolloUser.lastActivityOn?.date,
+            state: UserState(rawValue: apolloUser.state.rawValue.lowercased()) ?? .active
         )
     }
 } 
