@@ -85,24 +85,25 @@ struct HomeFeatureRow: View {
     let subtitle: String
     let iconColor: Color
     let destination: HomeCoordinator.Destination
-
+    
     var body: some View {
         NavigationLink(value: destination) {
             Image(systemName: icon)
                 .font(.title2)
                 .foregroundColor(iconColor)
                 .frame(width: 32, height: 32)
-
+            
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.headline)
                     .foregroundColor(.primary)
-
+                
                 Text(subtitle)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
         }
+        .padding(.vertical, 4)
     }
 }
 

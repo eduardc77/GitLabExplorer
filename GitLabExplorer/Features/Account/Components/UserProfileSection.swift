@@ -35,6 +35,13 @@ struct UserProfileSection: View {
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
+                        
+                        if let createdAt = user.createdAt {
+                            Text("Member since \(createdAt.formatted(.dateTime.month().day().year()))")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.top, 2)
+                        }
                     } else if authStore.isLoadingUser {
                         VStack(alignment: .leading, spacing: 8) {
                             ProgressView()
@@ -57,8 +64,7 @@ struct UserProfileSection: View {
                     Text(bio)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                } 
             }
         }
     }

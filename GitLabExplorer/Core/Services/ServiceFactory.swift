@@ -22,9 +22,10 @@ final class ServiceFactory {
     
     // MARK: - Services
     
-    private(set) var discoveryService: ProjectDiscoveryService
+    private(set) var exploreProjectsService: ExploreProjectsService
     private(set) var searchService: ProjectSearchService
     private(set) var notificationService: NotificationService
+    private(set) var personalProjectsService: PersonalProjectsService
     
     // MARK: - Initialization
     
@@ -37,9 +38,10 @@ final class ServiceFactory {
         self.authService = AuthenticationService(configuration: configuration, graphQLClient: graphQLClient)
         
         // Initialize services
-        self.discoveryService = ProjectDiscoveryService(configuration: configuration, authProvider: authProvider)
+        self.exploreProjectsService = ExploreProjectsService(configuration: configuration, authProvider: authProvider)
         self.searchService = ProjectSearchService(configuration: configuration, authProvider: authProvider)
         self.notificationService = NotificationService(graphQLClient: graphQLClient, authService: authService)
+        self.personalProjectsService = PersonalProjectsService(configuration: configuration, authProvider: authProvider)
     }
     
     // MARK: - Store Creation
@@ -47,7 +49,7 @@ final class ServiceFactory {
     /// Create a ProjectsStore with all required services
     func createProjectsStore() -> ProjectsStore {
         ProjectsStore(
-            discoveryService: discoveryService,
+            exploreProjectsService: exploreProjectsService,
             searchService: searchService
         )
     }
@@ -55,5 +57,10 @@ final class ServiceFactory {
     /// Create a NotificationsStore with all required services
     func createNotificationsStore(authStore: AuthenticationStore) -> NotificationsStore {
         NotificationsStore(notificationService: notificationService, authStore: authStore)
+    }
+    
+    /// Create a PersonalProjectsStore with all required services
+    func createPersonalProjectsStore() -> PersonalProjectsStore {
+        PersonalProjectsStore(personalProjectsService: personalProjectsService)
     }
 } 

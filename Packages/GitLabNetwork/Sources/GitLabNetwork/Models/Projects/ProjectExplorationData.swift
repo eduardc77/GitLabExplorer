@@ -1,4 +1,4 @@
-public struct ProjectDiscoveryData: Sendable {
+public struct ProjectExplorationData: Sendable {
     public let trending: [ProjectSummary]
     public let mostStarred: [ProjectSummary]
     public let active: [ProjectSummary]
@@ -12,4 +12,4 @@ public struct ProjectDiscoveryData: Sendable {
         self.mostStarred = mostStarred
         self.active = active
     }
-}
+} 
